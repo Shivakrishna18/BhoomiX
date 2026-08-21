@@ -106,12 +106,28 @@ export const authService = {
         try {
           const userDoc = await getDoc(doc(db, 'users', fbUser.uid));
           if (userDoc.exists()) {
-            const profile = { id: fbUser.uid, userId: fbUser.uid, ...userDoc.data() } as UserProfile;
+            const data = userDoc.data();
+            const profile: UserProfile = {
+              id: fbUser.uid,
+              userId: fbUser.uid,
+              firstName: data.firstName || 'BhoomiX',
+              lastName: data.lastName || 'User',
+              displayName: data.displayName || fbUser.displayName || `${data.firstName || ''} ${data.lastName || ''}`.trim() || 'BhoomiX User',
+              email: fbUser.email || data.email || '',
+              phoneNumber: data.phoneNumber || data.phone || fbUser.phoneNumber || undefined,
+              phone: data.phone || data.phoneNumber || fbUser.phoneNumber || undefined,
+              profilePhoto: data.profilePhoto || fbUser.photoURL || undefined,
+              avatarUrl: data.avatarUrl || fbUser.photoURL || undefined,
+              role: data.role || 'BUYER',
+              createdAt: data.createdAt || new Date().toISOString(),
+              ...data,
+            };
             this.saveActiveProfile(profile);
             callback(profile);
             return;
           }
-          // Construct profile from Firebase User
+
+          // Construct profile from Firebase User if doc does not yet exist
           const { firstName, lastName } = parseNames(fbUser.displayName);
           const newProfile: UserProfile = {
             id: fbUser.uid,
@@ -136,7 +152,11 @@ export const authService = {
       } else {
         // If not logged into Firebase Auth, check if custom persona is stored in local storage
         const current = this.getCurrentStoredProfile();
-        if (!current) {
+        // If the stored profile was a real firebase uid (not a mock persona), clear it
+        if (current && !current.id.startsWith('user_seller_rahul') && !current.id.startsWith('user_buyer_shiva')) {
+          this.saveActiveProfile(null);
+          callback(null);
+        } else if (!current) {
           callback(null);
         }
       }
@@ -166,7 +186,23 @@ export const authService = {
       const { firstName, lastName } = parseNames(fbUser.displayName);
 
       if (userSnap.exists()) {
-        const existing = { id: fbUser.uid, userId: fbUser.uid, ...userSnap.data() } as UserProfile;
+        const existingData = userSnap.data();
+        const existing: UserProfile = {
+          id: fbUser.uid,
+          userId: fbUser.uid,
+          firstName: existingData.firstName || firstName,
+          lastName: existingData.lastName || lastName,
+          displayName: existingData.displayName || fbUser.displayName || `${firstName} ${lastName}`.trim() || 'BhoomiX User',
+          email: fbUser.email || existingData.email || '',
+          phoneNumber: existingData.phoneNumber || existingData.phone || fbUser.phoneNumber || undefined,
+          phone: existingData.phone || existingData.phoneNumber || fbUser.phoneNumber || undefined,
+          role: existingData.role || preferredRole,
+          profilePhoto: existingData.profilePhoto || fbUser.photoURL || undefined,
+          avatarUrl: existingData.avatarUrl || fbUser.photoURL || undefined,
+          createdAt: existingData.createdAt || new Date().toISOString(),
+          ...existingData,
+        };
+
         // Merge latest photo if available
         if (fbUser.photoURL && !existing.profilePhoto) {
           existing.profilePhoto = fbUser.photoURL;
@@ -177,6 +213,7 @@ export const authService = {
             updatedAt: new Date().toISOString(),
           }).catch(() => {});
         }
+
         this.saveActiveProfile(existing);
         return existing;
       }
@@ -200,7 +237,11 @@ export const authService = {
       this.saveActiveProfile(newProfile);
       return newProfile;
     } catch (error: any) {
-      console.error('Google Sign In failed:', error);
+      console.error('[BhoomiX Auth] Google Sign In error details:', {
+        code: error?.code,
+        message: error?.message,
+        hostname: typeof window !== 'undefined' ? window.location.hostname : 'unknown',
+      });
       throw error;
     }
   },
@@ -240,7 +281,10 @@ export const authService = {
       this.saveActiveProfile(profile);
       return profile;
     } catch (error: any) {
-      console.error('Email sign up failed:', error);
+      console.error('[BhoomiX Auth] Email sign up error details:', {
+        code: error?.code,
+        message: error?.message,
+      });
       throw error;
     }
   },
@@ -253,7 +297,20 @@ export const authService = {
       const userSnap = await getDoc(doc(db, 'users', fbUser.uid));
 
       if (userSnap.exists()) {
-        const profile = { id: fbUser.uid, userId: fbUser.uid, ...userSnap.data() } as UserProfile;
+        const data = userSnap.data();
+        const profile: UserProfile = {
+          id: fbUser.uid,
+          userId: fbUser.uid,
+          firstName: data.firstName || 'BhoomiX',
+          lastName: data.lastName || 'User',
+          displayName: data.displayName || fbUser.displayName || `${data.firstName || ''} ${data.lastName || ''}`.trim() || 'BhoomiX User',
+          email: fbUser.email || email,
+          phoneNumber: data.phoneNumber || data.phone || fbUser.phoneNumber || undefined,
+          phone: data.phone || data.phoneNumber || fbUser.phoneNumber || undefined,
+          role: data.role || 'BUYER',
+          createdAt: data.createdAt || new Date().toISOString(),
+          ...data,
+        };
         this.saveActiveProfile(profile);
         return profile;
       }
@@ -274,7 +331,10 @@ export const authService = {
       this.saveActiveProfile(profile);
       return profile;
     } catch (error: any) {
-      console.error('Email login failed:', error);
+      console.error('[BhoomiX Auth] Email login error details:', {
+        code: error?.code,
+        message: error?.message,
+      });
       throw error;
     }
   },

@@ -10,6 +10,64 @@ interface AuthModalProps {
   onSuccess?: (user: UserProfile) => void;
 }
 
+function formatAuthError(err: any): string {
+  const code = err?.code || '';
+  const message = err?.message || '';
+
+  if (code === 'auth/unauthorized-domain' || message.includes('auth/unauthorized-domain')) {
+    const hostname = typeof window !== 'undefined' ? window.location.hostname : 'current domain';
+    console.error(
+      `[BhoomiX Firebase Auth Diagnostic]\n` +
+      `Error: auth/unauthorized-domain\n` +
+      `Host: ${hostname}\n` +
+      `Firebase Project: boxwood-transducer-dmvz5\n` +
+      `Resolution: Add "${hostname}" to Firebase Console -> Authentication -> Settings -> Authorized domains.`
+    );
+    return 'Sign-in is temporarily unavailable on this domain. Please try again in a moment or use the 1-Click test personas below.';
+  }
+
+  if (code === 'auth/popup-closed-by-user' || message.includes('popup-closed-by-user') || code === 'auth/cancelled-popup-request') {
+    return 'Sign-in popup was closed before completion. Please try again.';
+  }
+
+  if (code === 'auth/popup-blocked' || message.includes('popup-blocked')) {
+    return 'Sign-in popup was blocked by your browser. Please allow popups for this site and try again.';
+  }
+
+  if (
+    code === 'auth/invalid-credential' ||
+    code === 'auth/user-not-found' ||
+    code === 'auth/wrong-password' ||
+    message.includes('auth/invalid-credential') ||
+    message.includes('auth/user-not-found') ||
+    message.includes('auth/wrong-password')
+  ) {
+    return 'Invalid email or password. You can sign up as a new user or use the 1-Click test personas below.';
+  }
+
+  if (code === 'auth/email-already-in-use' || message.includes('auth/email-already-in-use')) {
+    return 'An account with this email already exists. Please sign in instead.';
+  }
+
+  if (code === 'auth/weak-password' || message.includes('auth/weak-password')) {
+    return 'Password is too weak. Please use at least 6 characters.';
+  }
+
+  if (code === 'auth/invalid-email' || message.includes('auth/invalid-email')) {
+    return 'Please enter a valid email address.';
+  }
+
+  if (code === 'auth/network-request-failed' || message.includes('network-request-failed')) {
+    return 'Network connection error. Please check your internet connection.';
+  }
+
+  if (code === 'auth/operation-not-allowed' || message.includes('operation-not-allowed')) {
+    return 'This authentication method is currently disabled in Firebase Console.';
+  }
+
+  return message || 'Authentication failed. Please check your credentials.';
+}
+
 export const AuthModal: React.FC<AuthModalProps> = ({
   isOpen,
   onClose,
@@ -73,17 +131,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       }
     } catch (err: any) {
       console.error('Auth error:', err);
-      let msg = err.message || 'Authentication failed. Please check your credentials.';
-      if (
-        msg.includes('auth/invalid-credential') ||
-        msg.includes('auth/user-not-found') ||
-        msg.includes('auth/wrong-password')
-      ) {
-        msg = 'Invalid email or password. You can sign up as a new user or use the 1-Click test personas below.';
-      } else if (msg.includes('auth/email-already-in-use')) {
-        msg = 'An account with this email already exists. Please sign in instead.';
-      }
-      setError(msg);
+      setError(formatAuthError(err));
     } finally {
       setLoading(false);
     }
@@ -98,7 +146,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       onClose();
     } catch (err: any) {
       console.error('Google Sign In error:', err);
-      setError(err.message || 'Google sign-in popup was closed or cancelled.');
+      setError(formatAuthError(err));
     } finally {
       setLoading(false);
     }
