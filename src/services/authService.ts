@@ -103,51 +103,46 @@ export const authService = {
     // 2. Firebase Auth state listener
     const unsubscribeFb = onAuthStateChanged(auth, async (fbUser: FirebaseUser | null) => {
       if (fbUser) {
+        const { firstName, lastName } = parseNames(fbUser.displayName);
+        const fallbackProfile: UserProfile = {
+          id: fbUser.uid,
+          userId: fbUser.uid,
+          firstName,
+          lastName,
+          displayName: fbUser.displayName || `${firstName} ${lastName}`.trim() || fbUser.email?.split('@')[0] || 'BhoomiX User',
+          email: fbUser.email || '',
+          phoneNumber: fbUser.phoneNumber || undefined,
+          phone: fbUser.phoneNumber || undefined,
+          profilePhoto: fbUser.photoURL || undefined,
+          avatarUrl: fbUser.photoURL || undefined,
+          role: 'BUYER',
+          createdAt: new Date().toISOString(),
+        };
+
+        // Emit immediately to ensure responsive UI
+        this.saveActiveProfile(fallbackProfile);
+        callback(fallbackProfile);
+
+        // Safely check remote Firestore in background with race timeout
         try {
-          const userDoc = await getDoc(doc(db, 'users', fbUser.uid));
-          if (userDoc.exists()) {
+          const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 2500));
+          const userDocPromise = getDoc(doc(db, 'users', fbUser.uid));
+          const userDoc: any = await Promise.race([userDocPromise, timeoutPromise]);
+          
+          if (userDoc && userDoc.exists && userDoc.exists()) {
             const data = userDoc.data();
             const profile: UserProfile = {
-              id: fbUser.uid,
-              userId: fbUser.uid,
-              firstName: data.firstName || 'BhoomiX',
-              lastName: data.lastName || 'User',
-              displayName: data.displayName || fbUser.displayName || `${data.firstName || ''} ${data.lastName || ''}`.trim() || 'BhoomiX User',
-              email: fbUser.email || data.email || '',
-              phoneNumber: data.phoneNumber || data.phone || fbUser.phoneNumber || undefined,
-              phone: data.phone || data.phoneNumber || fbUser.phoneNumber || undefined,
-              profilePhoto: data.profilePhoto || fbUser.photoURL || undefined,
-              avatarUrl: data.avatarUrl || fbUser.photoURL || undefined,
-              role: data.role || 'BUYER',
-              createdAt: data.createdAt || new Date().toISOString(),
+              ...fallbackProfile,
               ...data,
+              role: data.role || fallbackProfile.role,
             };
             this.saveActiveProfile(profile);
             callback(profile);
-            return;
+          } else {
+            setDoc(doc(db, 'users', fbUser.uid), fallbackProfile, { merge: true }).catch(() => {});
           }
-
-          // Construct profile from Firebase User if doc does not yet exist
-          const { firstName, lastName } = parseNames(fbUser.displayName);
-          const newProfile: UserProfile = {
-            id: fbUser.uid,
-            userId: fbUser.uid,
-            firstName,
-            lastName,
-            displayName: fbUser.displayName || `${firstName} ${lastName}`.trim() || fbUser.email?.split('@')[0] || 'BhoomiX User',
-            email: fbUser.email || '',
-            phoneNumber: fbUser.phoneNumber || undefined,
-            phone: fbUser.phoneNumber || undefined,
-            profilePhoto: fbUser.photoURL || undefined,
-            avatarUrl: fbUser.photoURL || undefined,
-            role: 'BUYER',
-            createdAt: new Date().toISOString(),
-          };
-          await setDoc(doc(db, 'users', fbUser.uid), newProfile);
-          this.saveActiveProfile(newProfile);
-          callback(newProfile);
         } catch (e) {
-          console.warn('Firebase auth listener sync note:', e);
+          // Non-fatal, offline/timeout gracefully swallowed
         }
       } else {
         // If not logged into Firebase Auth, check if custom persona is stored in local storage
@@ -182,49 +177,8 @@ export const authService = {
       const fbUser = cred.user;
       const { firstName, lastName } = parseNames(fbUser.displayName);
 
-      // Attempt to load existing profile from Firestore if available
-      try {
-        const userDocRef = doc(db, 'users', fbUser.uid);
-        const userSnap = await getDoc(userDocRef);
-
-        if (userSnap.exists()) {
-          const existingData = userSnap.data();
-          const existing: UserProfile = {
-            id: fbUser.uid,
-            userId: fbUser.uid,
-            firstName: existingData.firstName || firstName,
-            lastName: existingData.lastName || lastName,
-            displayName: existingData.displayName || fbUser.displayName || `${firstName} ${lastName}`.trim() || 'BhoomiX User',
-            email: fbUser.email || existingData.email || '',
-            phoneNumber: existingData.phoneNumber || existingData.phone || fbUser.phoneNumber || undefined,
-            phone: existingData.phone || existingData.phoneNumber || fbUser.phoneNumber || undefined,
-            role: existingData.role || preferredRole,
-            profilePhoto: existingData.profilePhoto || fbUser.photoURL || undefined,
-            avatarUrl: existingData.avatarUrl || fbUser.photoURL || undefined,
-            createdAt: existingData.createdAt || new Date().toISOString(),
-            ...existingData,
-          };
-
-          // Merge latest photo if available
-          if (fbUser.photoURL && !existing.profilePhoto) {
-            existing.profilePhoto = fbUser.photoURL;
-            existing.avatarUrl = fbUser.photoURL;
-            updateDoc(userDocRef, {
-              profilePhoto: fbUser.photoURL,
-              avatarUrl: fbUser.photoURL,
-              updatedAt: new Date().toISOString(),
-            }).catch(() => {});
-          }
-
-          this.saveActiveProfile(existing);
-          return existing;
-        }
-      } catch (dbErr) {
-        console.warn('[BhoomiX Auth] Non-fatal user profile fetch note:', dbErr);
-      }
-
-      // Fallback: Construct new profile from Firebase User credentials
-      const newProfile: UserProfile = {
+      // Construct base profile immediately
+      const profile: UserProfile = {
         id: fbUser.uid,
         userId: fbUser.uid,
         firstName,
@@ -239,9 +193,34 @@ export const authService = {
         createdAt: new Date().toISOString(),
       };
 
-      setDoc(doc(db, 'users', fbUser.uid), newProfile, { merge: true }).catch(() => {});
-      this.saveActiveProfile(newProfile);
-      return newProfile;
+      // Instantly save locally
+      this.saveActiveProfile(profile);
+
+      // Non-blocking firestore sync
+      (async () => {
+        try {
+          const userDocRef = doc(db, 'users', fbUser.uid);
+          const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 2000));
+          const snap: any = await Promise.race([getDoc(userDocRef), timeoutPromise]);
+          if (snap && snap.exists && snap.exists()) {
+            const existingData = snap.data();
+            const synced: UserProfile = {
+              ...profile,
+              ...existingData,
+              role: existingData.role || preferredRole,
+              profilePhoto: existingData.profilePhoto || fbUser.photoURL || undefined,
+              avatarUrl: existingData.avatarUrl || fbUser.photoURL || undefined,
+            };
+            this.saveActiveProfile(synced);
+          } else {
+            await setDoc(userDocRef, profile, { merge: true });
+          }
+        } catch (dbErr) {
+          // Gracefully ignore offline database errors in background
+        }
+      })();
+
+      return profile;
     } catch (error: any) {
       console.error('[BhoomiX Auth] Google Sign In error details:', {
         code: error?.code,
