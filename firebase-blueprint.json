@@ -1,0 +1,207 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile containing identity, role, contact info and timestamps",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "maxLength": 256 },
+        "displayName": { "type": "string", "maxLength": 128 },
+        "phone": { "type": "string", "maxLength": 32 },
+        "role": { "type": "string", "enum": ["BUYER", "SELLER", "ADMIN"], "maxLength": 16 },
+        "avatarUrl": { "type": "string", "maxLength": 1024 },
+        "createdAt": { "type": "string", "maxLength": 64 },
+        "updatedAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "email", "displayName", "role"]
+    },
+    "BuyerPreferences": {
+      "title": "BuyerPreferences",
+      "description": "Step-by-step buyer requirements questionnaire answers and investment preferences",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "budgetMin": { "type": "number" },
+        "budgetMax": { "type": "number" },
+        "preferredStates": { "type": "string", "maxLength": 128 },
+        "preferredDistricts": { "type": "string", "maxLength": 256 },
+        "preferredLocalities": { "type": "string", "maxLength": 512 },
+        "landSizeMin": { "type": "number" },
+        "landSizeMax": { "type": "number" },
+        "landUnit": { "type": "string", "enum": ["sq_yards", "acres", "guntas", "sq_feet"], "maxLength": 32 },
+        "purpose": { "type": "string", "enum": ["residential", "commercial", "agricultural", "industrial", "investment", "any"], "maxLength": 32 },
+        "investmentHorizon": { "type": "string", "maxLength": 64 },
+        "roadAccessibility": { "type": "string", "maxLength": 64 },
+        "documentRiskPreference": { "type": "string", "enum": ["strict_verified_only", "moderate", "all"], "maxLength": 64 },
+        "updatedAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "userId"]
+    },
+    "Property": {
+      "title": "Property",
+      "description": "Land and property listing with geo-coordinates, dimensions, prices, and boundary points",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "sellerId": { "type": "string", "maxLength": 128 },
+        "sellerName": { "type": "string", "maxLength": 128 },
+        "sellerPhone": { "type": "string", "maxLength": 32 },
+        "title": { "type": "string", "maxLength": 256 },
+        "description": { "type": "string", "maxLength": 5000 },
+        "state": { "type": "string", "maxLength": 64 },
+        "district": { "type": "string", "maxLength": 64 },
+        "city": { "type": "string", "maxLength": 64 },
+        "locality": { "type": "string", "maxLength": 128 },
+        "address": { "type": "string", "maxLength": 512 },
+        "landSize": { "type": "number" },
+        "landUnit": { "type": "string", "enum": ["sq_yards", "acres", "guntas", "sq_feet"], "maxLength": 32 },
+        "purpose": { "type": "string", "enum": ["residential", "commercial", "agricultural", "industrial", "investment"], "maxLength": 32 },
+        "askingPrice": { "type": "number" },
+        "pricePerUnit": { "type": "number" },
+        "referenceValue": { "type": "number" },
+        "latitude": { "type": "number" },
+        "longitude": { "type": "number" },
+        "boundary": { "type": "string", "maxLength": 10000 },
+        "photos": { "type": "string", "maxLength": 20000 },
+        "videoUrl": { "type": "string", "maxLength": 2048 },
+        "coverPhoto": { "type": "string", "maxLength": 2048 },
+        "roadFacing": { "type": "string", "maxLength": 64 },
+        "facing": { "type": "string", "maxLength": 32 },
+        "zoneType": { "type": "string", "maxLength": 64 },
+        "trustScore": { "type": "number" },
+        "verificationBadges": { "type": "string", "maxLength": 2048 },
+        "isDemo": { "type": "boolean" },
+        "status": { "type": "string", "enum": ["DRAFT", "PENDING_REVIEW", "PUBLISHED", "UNPUBLISHED", "SOLD", "ARCHIVED"], "maxLength": 32 },
+        "createdAt": { "type": "string", "maxLength": 64 },
+        "updatedAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "sellerId", "title", "state", "district", "locality", "landSize", "landUnit", "askingPrice", "status"]
+    },
+    "PropertyDocument": {
+      "title": "PropertyDocument",
+      "description": "Uploaded legal land documents, passbooks, survey maps, sale deeds and their AI extraction",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "propertyId": { "type": "string", "maxLength": 128 },
+        "sellerId": { "type": "string", "maxLength": 128 },
+        "documentType": { "type": "string", "maxLength": 64 },
+        "fileName": { "type": "string", "maxLength": 256 },
+        "fileUrl": { "type": "string", "maxLength": 2048 },
+        "fileSize": { "type": "number" },
+        "mimeType": { "type": "string", "maxLength": 64 },
+        "analysisSummary": { "type": "string", "maxLength": 10000 },
+        "status": { "type": "string", "enum": ["UPLOADED", "ANALYZED", "FLAGGED", "VERIFIED_REF"], "maxLength": 32 },
+        "createdAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "propertyId", "sellerId", "documentType", "fileName"]
+    },
+    "Conversation": {
+      "title": "Conversation",
+      "description": "Direct communication thread between buyer and seller for a property",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "propertyId": { "type": "string", "maxLength": 128 },
+        "propertyTitle": { "type": "string", "maxLength": 256 },
+        "buyerId": { "type": "string", "maxLength": 128 },
+        "buyerName": { "type": "string", "maxLength": 128 },
+        "sellerId": { "type": "string", "maxLength": 128 },
+        "sellerName": { "type": "string", "maxLength": 128 },
+        "lastMessage": { "type": "string", "maxLength": 1024 },
+        "lastMessageTimestamp": { "type": "string", "maxLength": 64 },
+        "createdAt": { "type": "string", "maxLength": 64 },
+        "updatedAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "propertyId", "buyerId", "sellerId"]
+    },
+    "Message": {
+      "title": "Message",
+      "description": "Direct message between buyer and seller in a conversation",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "conversationId": { "type": "string", "maxLength": 128 },
+        "senderId": { "type": "string", "maxLength": 128 },
+        "senderName": { "type": "string", "maxLength": 128 },
+        "body": { "type": "string", "maxLength": 2000 },
+        "read": { "type": "boolean" },
+        "createdAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "conversationId", "senderId", "body"]
+    },
+    "SiteVisit": {
+      "title": "SiteVisit",
+      "description": "Site visit appointment scheduled between buyer and seller",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "propertyId": { "type": "string", "maxLength": 128 },
+        "propertyTitle": { "type": "string", "maxLength": 256 },
+        "propertyLocation": { "type": "string", "maxLength": 256 },
+        "buyerId": { "type": "string", "maxLength": 128 },
+        "buyerName": { "type": "string", "maxLength": 128 },
+        "buyerPhone": { "type": "string", "maxLength": 32 },
+        "sellerId": { "type": "string", "maxLength": 128 },
+        "sellerName": { "type": "string", "maxLength": 128 },
+        "date": { "type": "string", "maxLength": 32 },
+        "timeSlot": { "type": "string", "maxLength": 32 },
+        "notes": { "type": "string", "maxLength": 1000 },
+        "sellerRemarks": { "type": "string", "maxLength": 1000 },
+        "status": { "type": "string", "enum": ["REQUESTED", "CONFIRMED", "RESCHEDULED", "DECLINED", "COMPLETED", "CANCELLED"], "maxLength": 32 },
+        "createdAt": { "type": "string", "maxLength": 64 },
+        "updatedAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "propertyId", "buyerId", "sellerId", "date", "timeSlot", "status"]
+    },
+    "SavedProperty": {
+      "title": "SavedProperty",
+      "description": "Buyer's saved/bookmarked properties for persistent cross-device watchlists",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "propertyId": { "type": "string", "maxLength": 128 },
+        "propertyData": { "type": "string", "maxLength": 5000 },
+        "createdAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "userId", "propertyId"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile data containing role and contact information"
+    },
+    "/buyerPreferences/{userId}": {
+      "schema": "BuyerPreferences",
+      "description": "Buyer personalized preference profile for AI land recommendations"
+    },
+    "/properties/{propertyId}": {
+      "schema": "Property",
+      "description": "All property and land listings (draft, published, sold)"
+    },
+    "/propertyDocuments/{docId}": {
+      "schema": "PropertyDocument",
+      "description": "Uploaded legal docs and analysis for properties"
+    },
+    "/conversations/{conversationId}": {
+      "schema": "Conversation",
+      "description": "Buyer and seller chat conversation metadata"
+    },
+    "/messages/{messageId}": {
+      "schema": "Message",
+      "description": "Individual chat messages within a conversation"
+    },
+    "/siteVisits/{visitId}": {
+      "schema": "SiteVisit",
+      "description": "Site visit booking requests and confirmations"
+    },
+    "/savedProperties/{saveId}": {
+      "schema": "SavedProperty",
+      "description": "Saved listings per user"
+    }
+  }
+}

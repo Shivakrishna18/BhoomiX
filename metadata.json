@@ -1,0 +1,6 @@
+{
+  "name": "BhoomiX",
+  "description": "AI-powered direct-to-direct land and property discovery platform for India.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
