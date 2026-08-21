@@ -41,14 +41,24 @@ const firebaseConfig = {
   measurementId: metaEnv.VITE_FIREBASE_MEASUREMENT_ID || appletConfig.measurementId || '',
 };
 
-export const firestoreDatabaseId =
-  metaEnv.VITE_FIREBASE_DATABASE_ID || appletConfig.firestoreDatabaseId;
+// Determine database ID:
+// If custom project ID is provided (e.g. on Vercel), use VITE_FIREBASE_DATABASE_ID if explicitly set, or default database (undefined)
+// If in AI Studio workspace, use the applet configured database ID.
+const isCustomProject =
+  Boolean(metaEnv.VITE_FIREBASE_PROJECT_ID) &&
+  metaEnv.VITE_FIREBASE_PROJECT_ID !== appletConfig.projectId;
+
+export const firestoreDatabaseId: string | undefined = metaEnv.VITE_FIREBASE_DATABASE_ID
+  ? metaEnv.VITE_FIREBASE_DATABASE_ID
+  : isCustomProject
+  ? undefined
+  : appletConfig.firestoreDatabaseId;
 
 // Initialize Firebase App
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
-// Export Firestore with explicit database ID as required
-export const db = getFirestore(app, firestoreDatabaseId);
+// Export Firestore (passing undefined defaults to the standard default database instance)
+export const db = firestoreDatabaseId ? getFirestore(app, firestoreDatabaseId) : getFirestore(app);
 export const auth = getAuth(app);
 
 export const googleProvider = new GoogleAuthProvider();

@@ -180,50 +180,56 @@ export const authService = {
     try {
       const cred = await signInWithPopup(auth, googleProvider);
       const fbUser = cred.user;
-      const userDocRef = doc(db, 'users', fbUser.uid);
-      const userSnap = await getDoc(userDocRef);
-
       const { firstName, lastName } = parseNames(fbUser.displayName);
 
-      if (userSnap.exists()) {
-        const existingData = userSnap.data();
-        const existing: UserProfile = {
-          id: fbUser.uid,
-          userId: fbUser.uid,
-          firstName: existingData.firstName || firstName,
-          lastName: existingData.lastName || lastName,
-          displayName: existingData.displayName || fbUser.displayName || `${firstName} ${lastName}`.trim() || 'BhoomiX User',
-          email: fbUser.email || existingData.email || '',
-          phoneNumber: existingData.phoneNumber || existingData.phone || fbUser.phoneNumber || undefined,
-          phone: existingData.phone || existingData.phoneNumber || fbUser.phoneNumber || undefined,
-          role: existingData.role || preferredRole,
-          profilePhoto: existingData.profilePhoto || fbUser.photoURL || undefined,
-          avatarUrl: existingData.avatarUrl || fbUser.photoURL || undefined,
-          createdAt: existingData.createdAt || new Date().toISOString(),
-          ...existingData,
-        };
+      // Attempt to load existing profile from Firestore if available
+      try {
+        const userDocRef = doc(db, 'users', fbUser.uid);
+        const userSnap = await getDoc(userDocRef);
 
-        // Merge latest photo if available
-        if (fbUser.photoURL && !existing.profilePhoto) {
-          existing.profilePhoto = fbUser.photoURL;
-          existing.avatarUrl = fbUser.photoURL;
-          await updateDoc(userDocRef, {
-            profilePhoto: fbUser.photoURL,
-            avatarUrl: fbUser.photoURL,
-            updatedAt: new Date().toISOString(),
-          }).catch(() => {});
+        if (userSnap.exists()) {
+          const existingData = userSnap.data();
+          const existing: UserProfile = {
+            id: fbUser.uid,
+            userId: fbUser.uid,
+            firstName: existingData.firstName || firstName,
+            lastName: existingData.lastName || lastName,
+            displayName: existingData.displayName || fbUser.displayName || `${firstName} ${lastName}`.trim() || 'BhoomiX User',
+            email: fbUser.email || existingData.email || '',
+            phoneNumber: existingData.phoneNumber || existingData.phone || fbUser.phoneNumber || undefined,
+            phone: existingData.phone || existingData.phoneNumber || fbUser.phoneNumber || undefined,
+            role: existingData.role || preferredRole,
+            profilePhoto: existingData.profilePhoto || fbUser.photoURL || undefined,
+            avatarUrl: existingData.avatarUrl || fbUser.photoURL || undefined,
+            createdAt: existingData.createdAt || new Date().toISOString(),
+            ...existingData,
+          };
+
+          // Merge latest photo if available
+          if (fbUser.photoURL && !existing.profilePhoto) {
+            existing.profilePhoto = fbUser.photoURL;
+            existing.avatarUrl = fbUser.photoURL;
+            updateDoc(userDocRef, {
+              profilePhoto: fbUser.photoURL,
+              avatarUrl: fbUser.photoURL,
+              updatedAt: new Date().toISOString(),
+            }).catch(() => {});
+          }
+
+          this.saveActiveProfile(existing);
+          return existing;
         }
-
-        this.saveActiveProfile(existing);
-        return existing;
+      } catch (dbErr) {
+        console.warn('[BhoomiX Auth] Non-fatal user profile fetch note:', dbErr);
       }
 
+      // Fallback: Construct new profile from Firebase User credentials
       const newProfile: UserProfile = {
         id: fbUser.uid,
         userId: fbUser.uid,
         firstName,
         lastName,
-        displayName: fbUser.displayName || `${firstName} ${lastName}`.trim() || 'BhoomiX User',
+        displayName: fbUser.displayName || `${firstName} ${lastName}`.trim() || fbUser.email?.split('@')[0] || 'BhoomiX User',
         email: fbUser.email || '',
         phoneNumber: fbUser.phoneNumber || undefined,
         phone: fbUser.phoneNumber || undefined,
@@ -233,7 +239,7 @@ export const authService = {
         createdAt: new Date().toISOString(),
       };
 
-      await setDoc(userDocRef, newProfile);
+      setDoc(doc(db, 'users', fbUser.uid), newProfile, { merge: true }).catch(() => {});
       this.saveActiveProfile(newProfile);
       return newProfile;
     } catch (error: any) {
@@ -262,7 +268,7 @@ export const authService = {
 
       const cred = await createUserWithEmailAndPassword(auth, email, pass);
       const fbUser = cred.user;
-      await updateProfile(fbUser, { displayName });
+      await updateProfile(fbUser, { displayName }).catch(() => {});
 
       const profile: UserProfile = {
         id: fbUser.uid,
@@ -277,7 +283,7 @@ export const authService = {
         createdAt: new Date().toISOString(),
       };
 
-      await setDoc(doc(db, 'users', fbUser.uid), profile);
+      setDoc(doc(db, 'users', fbUser.uid), profile, { merge: true }).catch(() => {});
       this.saveActiveProfile(profile);
       return profile;
     } catch (error: any) {
@@ -294,25 +300,29 @@ export const authService = {
     try {
       const cred = await signInWithEmailAndPassword(auth, email, pass);
       const fbUser = cred.user;
-      const userSnap = await getDoc(doc(db, 'users', fbUser.uid));
 
-      if (userSnap.exists()) {
-        const data = userSnap.data();
-        const profile: UserProfile = {
-          id: fbUser.uid,
-          userId: fbUser.uid,
-          firstName: data.firstName || 'BhoomiX',
-          lastName: data.lastName || 'User',
-          displayName: data.displayName || fbUser.displayName || `${data.firstName || ''} ${data.lastName || ''}`.trim() || 'BhoomiX User',
-          email: fbUser.email || email,
-          phoneNumber: data.phoneNumber || data.phone || fbUser.phoneNumber || undefined,
-          phone: data.phone || data.phoneNumber || fbUser.phoneNumber || undefined,
-          role: data.role || 'BUYER',
-          createdAt: data.createdAt || new Date().toISOString(),
-          ...data,
-        };
-        this.saveActiveProfile(profile);
-        return profile;
+      try {
+        const userSnap = await getDoc(doc(db, 'users', fbUser.uid));
+        if (userSnap.exists()) {
+          const data = userSnap.data();
+          const profile: UserProfile = {
+            id: fbUser.uid,
+            userId: fbUser.uid,
+            firstName: data.firstName || 'BhoomiX',
+            lastName: data.lastName || 'User',
+            displayName: data.displayName || fbUser.displayName || `${data.firstName || ''} ${data.lastName || ''}`.trim() || 'BhoomiX User',
+            email: fbUser.email || email,
+            phoneNumber: data.phoneNumber || data.phone || fbUser.phoneNumber || undefined,
+            phone: data.phone || data.phoneNumber || fbUser.phoneNumber || undefined,
+            role: data.role || 'BUYER',
+            createdAt: data.createdAt || new Date().toISOString(),
+            ...data,
+          };
+          this.saveActiveProfile(profile);
+          return profile;
+        }
+      } catch (dbErr) {
+        console.warn('[BhoomiX Auth] Non-fatal user profile fetch note on login:', dbErr);
       }
 
       const { firstName, lastName } = parseNames(fbUser.displayName);
@@ -327,7 +337,7 @@ export const authService = {
         createdAt: new Date().toISOString(),
       };
 
-      await setDoc(doc(db, 'users', fbUser.uid), profile);
+      setDoc(doc(db, 'users', fbUser.uid), profile, { merge: true }).catch(() => {});
       this.saveActiveProfile(profile);
       return profile;
     } catch (error: any) {
