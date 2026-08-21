@@ -41,24 +41,11 @@ const firebaseConfig = {
   measurementId: metaEnv.VITE_FIREBASE_MEASUREMENT_ID || appletConfig.measurementId || '',
 };
 
-// Determine database ID:
-// If custom project ID is provided (e.g. on Vercel), use VITE_FIREBASE_DATABASE_ID if explicitly set, or default database (undefined)
-// If in AI Studio workspace, use the applet configured database ID.
-const isCustomProject =
-  Boolean(metaEnv.VITE_FIREBASE_PROJECT_ID) &&
-  metaEnv.VITE_FIREBASE_PROJECT_ID !== appletConfig.projectId;
-
-export const firestoreDatabaseId: string | undefined = metaEnv.VITE_FIREBASE_DATABASE_ID
-  ? metaEnv.VITE_FIREBASE_DATABASE_ID
-  : isCustomProject
-  ? undefined
-  : appletConfig.firestoreDatabaseId;
-
 // Initialize Firebase App
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
-// Export Firestore (passing undefined defaults to the standard default database instance)
-export const db = firestoreDatabaseId ? getFirestore(app, firestoreDatabaseId) : getFirestore(app);
+// Export Firestore (connecting to default database)
+export const db = getFirestore(app);
 export const auth = getAuth(app);
 
 export const googleProvider = new GoogleAuthProvider();
@@ -66,7 +53,7 @@ googleProvider.setCustomParameters({
   prompt: 'select_account',
 });
 
-// Standard Error Info Interface required by skill
+// Standard Error Info Interface
 export enum OperationType {
   CREATE = 'create',
   UPDATE = 'update',
@@ -115,21 +102,6 @@ export function handleFirestoreError(
     operationType,
     path,
   };
-  console.error('[BhoomiX Firestore Error]', JSON.stringify(errInfo, null, 2));
+  console.warn('[BhoomiX Firestore Error]', errInfo);
   throw new Error(JSON.stringify(errInfo));
 }
-
-// Test Connection on boot
-export async function testFirestoreConnection() {
-  try {
-    // Attempting a server read check
-    await getDocFromServer(doc(db, 'system', 'health-check'));
-    console.log('[Firebase] Connected to Cloud Firestore database');
-  } catch (error: any) {
-    if (error instanceof Error && error.message.includes('the client is offline')) {
-      console.warn('[Firebase] Warning: Client is offline or database initializing.');
-    }
-  }
-}
-
-testFirestoreConnection();
