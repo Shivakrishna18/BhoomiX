@@ -78,23 +78,19 @@ export default function App() {
   const [unreadNotifsCount, setUnreadNotifsCount] = useState(0);
   const [createWizardOpen, setCreateWizardOpen] = useState(false);
 
-  // Synchronize User profile when activeRole changes using IP Auto-Login
+  // Synchronize User profile across Firebase Auth and test personas
   useEffect(() => {
-    authService.getOrInitIpSession(activeRole).then((ipUser) => {
-      setCurrentUser(ipUser);
+    const unsubscribe = authService.onAuthChange((user) => {
+      setCurrentUser(user);
+      if (user.role === 'SELLER' || user.role === 'BUYER') {
+        setActiveRole(user.role);
+      }
     });
 
-    const handleAuthChange = (e: any) => {
-      if (e?.detail?.user) {
-        setCurrentUser(e.detail.user);
-      }
-    };
-    window.addEventListener('bhoomix_auth_changed', handleAuthChange);
-
     return () => {
-      window.removeEventListener('bhoomix_auth_changed', handleAuthChange);
+      unsubscribe();
     };
-  }, [activeRole]);
+  }, []);
 
   // Fetch Core Properties Data
   const loadProperties = useCallback(async () => {
@@ -250,7 +246,8 @@ export default function App() {
       <Navbar
         currentUser={currentUser}
         activeRole={activeRole}
-        onSelectRole={(role) => {
+        onSelectRole={async (role) => {
+          await authService.switchRole(role);
           setActiveRole(role);
           if (role === 'SELLER') {
             setActiveTab('seller');

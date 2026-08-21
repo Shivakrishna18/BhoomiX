@@ -11,124 +11,98 @@ import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { auth, db, googleProvider, handleFirestoreError, OperationType } from '../lib/firebase';
 import { UserProfile, UserRole } from '../types';
 
-const IP_USER_STORAGE_KEY = 'bhoomix_ip_user_profile_v2';
-const IP_CLIENT_CACHE_KEY = 'bhoomix_detected_ip';
+const AUTH_USER_STORAGE_KEY = 'bhoomix_authenticated_user_profile_v3';
 
-let cachedClientIp: string | null = null;
+// Built-in Demo / Test Personas for seamless testing across devices & judge mode
+export const DEMO_TEST_PERSONAS: Record<UserRole, UserProfile> = {
+  BUYER: {
+    id: 'user_buyer_srikanth_rao',
+    displayName: 'Srikanth Rao',
+    email: 'srikanth.rao@bhoomix.in',
+    phone: '+91 98490 12345',
+    role: 'BUYER',
+    createdAt: '2026-01-15T10:00:00.000Z',
+  },
+  SELLER: {
+    id: 'user_seller_venkata_reddy',
+    displayName: 'Venkata Reddy (Pattadar)',
+    email: 's16677481@gmail.com',
+    phone: '+91 98480 54321',
+    role: 'SELLER',
+    createdAt: '2026-01-10T09:30:00.000Z',
+  },
+  ADMIN: {
+    id: 'user_admin_bhoomix',
+    displayName: 'BhoomiX Land Officer',
+    email: 'officer@bhoomix.in',
+    phone: '+91 98000 00000',
+    role: 'ADMIN',
+    createdAt: '2026-01-01T00:00:00.000Z',
+  },
+};
 
 export const authService = {
-  // Fetch or resolve client IP address
-  async detectClientIp(): Promise<string> {
-    if (cachedClientIp) return cachedClientIp;
-
+  // Get active cached session or default to initial role profile
+  getCurrentStoredProfile(preferredRole: UserRole = 'BUYER'): UserProfile {
     try {
-      const stored = localStorage.getItem(IP_CLIENT_CACHE_KEY);
+      const stored = localStorage.getItem(AUTH_USER_STORAGE_KEY);
       if (stored) {
-        cachedClientIp = stored;
-        return stored;
+        const parsed = JSON.parse(stored) as UserProfile;
+        if (parsed && parsed.id) return parsed;
       }
     } catch {}
-
-    try {
-      const res = await fetch('/api/auth/ip-session');
-      if (res.ok) {
-        const data = await res.json();
-        if (data && data.ip) {
-          cachedClientIp = data.ip;
-          try {
-            localStorage.setItem(IP_CLIENT_CACHE_KEY, data.ip);
-          } catch {}
-          return data.ip;
-        }
-      }
-    } catch (e) {
-      console.warn('Backend IP detection note, using fallback:', e);
-    }
-
-    // Fallback deterministic IP for offline or isolated sandboxes
-    const fallbackIp = '122.161.44.189';
-    cachedClientIp = fallbackIp;
-    return fallbackIp;
+    return DEMO_TEST_PERSONAS[preferredRole];
   },
 
-  // Auto-login or retrieve current IP-based user session
-  async getOrInitIpSession(preferredRole: UserRole = 'BUYER'): Promise<UserProfile> {
-    const clientIp = await this.detectClientIp();
-    const sanitizedIp = clientIp.replace(/[^a-zA-Z0-9]/g, '_');
-
+  // Save active profile to localStorage and broadcast change event
+  saveActiveProfile(profile: UserProfile): void {
     try {
-      const storedRaw = localStorage.getItem(`${IP_USER_STORAGE_KEY}_${preferredRole}`);
-      if (storedRaw) {
-        const parsed = JSON.parse(storedRaw) as UserProfile;
-        if (parsed && parsed.id) {
-          parsed.role = preferredRole;
-          parsed.ipAddress = clientIp;
-          return parsed;
-        }
-      }
-    } catch {}
-
-    // Construct fresh IP-authenticated profile
-    const isSeller = preferredRole === 'SELLER';
-    const profileId = isSeller ? `seller_ip_${sanitizedIp}` : `buyer_ip_${sanitizedIp}`;
-    const defaultName = isSeller
-      ? 'Venkata Reddy (Pattadar)'
-      : 'Srikanth Rao (Direct Buyer)';
-    const defaultEmail = isSeller
-      ? `seller.${sanitizedIp}@bhoomix-direct.in`
-      : `buyer.${sanitizedIp}@bhoomix-direct.in`;
-    const defaultPhone = isSeller ? '+91 98480 54321' : '+91 98490 12345';
-
-    const newProfile: UserProfile = {
-      id: profileId,
-      displayName: defaultName,
-      email: defaultEmail,
-      phone: defaultPhone,
-      role: preferredRole,
-      ipAddress: clientIp,
-      sessionType: 'IP_AUTO',
-      createdAt: new Date().toISOString(),
-    };
-
-    try {
-      localStorage.setItem(`${IP_USER_STORAGE_KEY}_${preferredRole}`, JSON.stringify(newProfile));
-      // Sync to Firestore quietly so cross-device queries and permissions resolve
-      setDoc(doc(db, 'users', newProfile.id), newProfile, { merge: true }).catch(() => {});
-    } catch {}
-
-    return newProfile;
-  },
-
-  // Update IP User Profile (e.g. customized name or contact number)
-  async updateIpProfile(
-    role: UserRole,
-    updates: Partial<UserProfile>
-  ): Promise<UserProfile> {
-    const current = await this.getOrInitIpSession(role);
-    const updated: UserProfile = {
-      ...current,
-      ...updates,
-      updatedAt: new Date().toISOString(),
-    };
-
-    try {
-      localStorage.setItem(`${IP_USER_STORAGE_KEY}_${role}`, JSON.stringify(updated));
-      setDoc(doc(db, 'users', updated.id), updated, { merge: true }).catch(() => {});
+      localStorage.setItem(AUTH_USER_STORAGE_KEY, JSON.stringify(profile));
       window.dispatchEvent(
-        new CustomEvent('bhoomix_auth_changed', { detail: { user: updated } })
+        new CustomEvent('bhoomix_auth_changed', { detail: { user: profile } })
       );
-    } catch {}
-
-    return updated;
+      // Sync to Firestore quietly in the background
+      setDoc(doc(db, 'users', profile.id), profile, { merge: true }).catch(() => {});
+    } catch (e) {
+      console.warn('Profile save note:', e);
+    }
   },
 
-  // Listen to Auth state changes (Supports automatic IP session & Firebase)
-  onAuthChange(callback: (user: UserProfile | null) => void) {
-    // 1. First trigger with active IP session
-    this.getOrInitIpSession('BUYER').then((ipUser) => {
-      callback(ipUser);
+  // Listen for Auth changes from Firebase & custom switches
+  onAuthChange(callback: (user: UserProfile) => void) {
+    // 1. Initial fire with current stored profile
+    const initialProfile = this.getCurrentStoredProfile('BUYER');
+    callback(initialProfile);
+
+    // 2. Firebase Auth state listener
+    const unsubscribeFb = onAuthStateChanged(auth, async (fbUser: FirebaseUser | null) => {
+      if (fbUser) {
+        try {
+          const userDoc = await getDoc(doc(db, 'users', fbUser.uid));
+          if (userDoc.exists()) {
+            const profile = userDoc.data() as UserProfile;
+            this.saveActiveProfile(profile);
+            callback(profile);
+            return;
+          }
+          // Construct profile from Firebase User
+          const newProfile: UserProfile = {
+            id: fbUser.uid,
+            displayName: fbUser.displayName || fbUser.email?.split('@')[0] || 'BhoomiX User',
+            email: fbUser.email || '',
+            avatarUrl: fbUser.photoURL || undefined,
+            role: 'BUYER',
+            createdAt: new Date().toISOString(),
+          };
+          this.saveActiveProfile(newProfile);
+          callback(newProfile);
+        } catch (e) {
+          console.warn('Firebase auth listener sync note:', e);
+        }
+      }
     });
 
+    // 3. Custom event listener for instant local role / test persona switching
     const handleCustomAuth = (e: Event) => {
       const customEvent = e as CustomEvent<{ user: UserProfile }>;
       if (customEvent.detail && customEvent.detail.user) {
@@ -138,11 +112,12 @@ export const authService = {
     window.addEventListener('bhoomix_auth_changed', handleCustomAuth);
 
     return () => {
+      unsubscribeFb();
       window.removeEventListener('bhoomix_auth_changed', handleCustomAuth);
     };
   },
 
-  // Google Popup Sign In (Maintained as optional fallback)
+  // Google Sign-In with Firebase Auth popup
   async signInWithGoogle(preferredRole: UserRole = 'BUYER'): Promise<UserProfile> {
     try {
       const cred = await signInWithPopup(auth, googleProvider);
@@ -152,23 +127,23 @@ export const authService = {
 
       if (userSnap.exists()) {
         const existing = userSnap.data() as UserProfile;
+        this.saveActiveProfile(existing);
         return existing;
       }
 
-      const clientIp = await this.detectClientIp();
       const newProfile: UserProfile = {
         id: fbUser.uid,
         email: fbUser.email || '',
         displayName: fbUser.displayName || 'BhoomiX User',
         role: preferredRole,
         avatarUrl: fbUser.photoURL || undefined,
-        ipAddress: clientIp,
-        sessionType: 'CUSTOM',
         createdAt: new Date().toISOString(),
       };
+
       await setDoc(userDocRef, newProfile);
+      this.saveActiveProfile(newProfile);
       return newProfile;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Google Sign In failed:', error);
       throw error;
     }
@@ -187,21 +162,19 @@ export const authService = {
       const fbUser = cred.user;
       await updateProfile(fbUser, { displayName });
 
-      const clientIp = await this.detectClientIp();
       const profile: UserProfile = {
         id: fbUser.uid,
         email,
         displayName,
         phone,
         role,
-        ipAddress: clientIp,
-        sessionType: 'CUSTOM',
         createdAt: new Date().toISOString(),
       };
 
       await setDoc(doc(db, 'users', fbUser.uid), profile);
+      this.saveActiveProfile(profile);
       return profile;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Email sign up failed:', error);
       throw error;
     }
@@ -215,29 +188,39 @@ export const authService = {
       const userSnap = await getDoc(doc(db, 'users', fbUser.uid));
 
       if (userSnap.exists()) {
-        return userSnap.data() as UserProfile;
+        const profile = userSnap.data() as UserProfile;
+        this.saveActiveProfile(profile);
+        return profile;
       }
 
-      const clientIp = await this.detectClientIp();
       const profile: UserProfile = {
         id: fbUser.uid,
         email: fbUser.email || email,
         displayName: fbUser.displayName || email.split('@')[0],
         role: 'BUYER',
-        ipAddress: clientIp,
-        sessionType: 'CUSTOM',
         createdAt: new Date().toISOString(),
       };
+
       await setDoc(doc(db, 'users', fbUser.uid), profile);
+      this.saveActiveProfile(profile);
       return profile;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Email login failed:', error);
       throw error;
     }
   },
 
-  // Switch role or update profile
-  async updateUserProfile(userId: string, updates: Partial<UserProfile>): Promise<void> {
+  // Update current user profile
+  async updateUserProfile(userId: string, updates: Partial<UserProfile>): Promise<UserProfile> {
+    const current = this.getCurrentStoredProfile();
+    const updated: UserProfile = {
+      ...current,
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    };
+
+    this.saveActiveProfile(updated);
+
     try {
       const userRef = doc(db, 'users', userId);
       await updateDoc(userRef, {
@@ -245,28 +228,38 @@ export const authService = {
         updatedAt: new Date().toISOString(),
       });
     } catch (error) {
-      handleFirestoreError(error, OperationType.UPDATE, `users/${userId}`);
+      console.warn('Firestore user update note:', error);
     }
+
+    return updated;
   },
 
-  // Sign Out (Re-initializes fresh IP session)
+  // Set / Switch to a specific persona (for Judge Mode or testing)
+  async setDemoUser(persona: UserProfile): Promise<UserProfile> {
+    this.saveActiveProfile(persona);
+    return persona;
+  },
+
+  // Switch role between BUYER and SELLER
+  async switchRole(newRole: UserRole): Promise<UserProfile> {
+    const current = this.getCurrentStoredProfile(newRole);
+    const updated: UserProfile = {
+      ...current,
+      role: newRole,
+      updatedAt: new Date().toISOString(),
+    };
+    this.saveActiveProfile(updated);
+    return updated;
+  },
+
+  // Sign Out
   async signOut(): Promise<void> {
-    sessionStorage.removeItem('bhoomix_active_demo_user');
     try {
       await fbSignOut(auth);
     } catch {}
-  },
-
-  // 1-Click Test Judge / Quick Switch
-  async setDemoUser(demoUser: UserProfile): Promise<UserProfile> {
-    sessionStorage.setItem('bhoomix_active_demo_user', JSON.stringify(demoUser));
-    try {
-      localStorage.setItem(`${IP_USER_STORAGE_KEY}_${demoUser.role}`, JSON.stringify(demoUser));
-      await setDoc(doc(db, 'users', demoUser.id), demoUser, { merge: true });
-      window.dispatchEvent(
-        new CustomEvent('bhoomix_auth_changed', { detail: { user: demoUser } })
-      );
-    } catch {}
-    return demoUser;
+    localStorage.removeItem(AUTH_USER_STORAGE_KEY);
+    // Reset to demo buyer profile
+    const defaultBuyer = DEMO_TEST_PERSONAS.BUYER;
+    this.saveActiveProfile(defaultBuyer);
   },
 };

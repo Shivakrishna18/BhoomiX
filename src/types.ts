@@ -7,8 +7,6 @@ export interface UserProfile {
   phone?: string;
   role: UserRole;
   avatarUrl?: string;
-  ipAddress?: string;
-  sessionType?: 'IP_AUTO' | 'CUSTOM';
   createdAt: string;
   updatedAt?: string;
 }
@@ -25,9 +23,12 @@ export interface BoundaryPoint {
 
 export interface Property {
   id: string;
-  sellerId: string;
-  sellerName: string;
-  sellerPhone?: string;
+  sellerId: string; // Authenticated User ID
+  sellerUserId?: string; // Canonical user reference
+  sellerName: string; // Owner / Pattadar Name
+  ownerName?: string; // Explicit owner field
+  sellerEmail?: string; // Optional email
+  sellerPhone?: string; // Mobile / WhatsApp
   title: string;
   description: string;
   state: string;
@@ -39,15 +40,15 @@ export interface Property {
   landSize: number;
   landUnit: LandUnit;
   purpose: LandPurpose;
-  askingPrice: number;
-  pricePerUnit: number;
+  askingPrice: number; // Canonical numeric price in INR
+  pricePerUnit: number; // Price per unit in INR
   referenceValue?: number;
   latitude: number;
   longitude: number;
   boundary?: BoundaryPoint[];
   photos: string[];
   coverPhoto?: string;
-  videoUrl?: string;
+  videoUrl?: string; // Optional video walkthrough URL
   roadFacing?: string;
   facing?: string;
   zoneType?: string;
@@ -73,7 +74,7 @@ export interface PropertyDocument {
   fileUrl: string;
   fileSize?: number;
   mimeType?: string;
-  status: 'UPLOADED' | 'ANALYZED' | 'FLAGGED' | 'VERIFIED_REF';
+  status: 'DRAFT' | 'UPLOADING' | 'PROCESSING' | 'UNDER_REVIEW' | 'VERIFIED' | 'REJECTED' | 'UPLOADED' | 'VERIFIED_REF';
   analysisSummary?: DocumentAnalysis;
   createdAt: string;
 }

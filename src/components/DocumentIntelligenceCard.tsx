@@ -10,6 +10,7 @@ import {
   FileCheck,
   ChevronDown,
   ChevronUp,
+  Clock,
 } from 'lucide-react';
 import { Property, PropertyDocument, DocumentAnalysis } from '../types';
 import { documentService } from '../services/documentService';
@@ -27,7 +28,7 @@ export const DocumentIntelligenceCard: React.FC<DocumentIntelligenceCardProps> =
   const [loading, setLoading] = useState(true);
   const [analyzingDocId, setAnalyzingDocId] = useState<string | null>(null);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
-  const [selectedDocType, setSelectedDocType] = useState<any>('PASSBOOK');
+  const [selectedDocType, setSelectedDocType] = useState<any>('Dharani Digital Pattadar Passbook');
   const [docTitle, setDocTitle] = useState('');
   const [docNotes, setDocNotes] = useState('');
   const [expandedDocId, setExpandedDocId] = useState<string | null>(null);
@@ -40,80 +41,9 @@ export const DocumentIntelligenceCard: React.FC<DocumentIntelligenceCardProps> =
     setLoading(true);
     try {
       const docs = await documentService.getDocumentsForProperty(property.id);
-      if (docs.length === 0) {
-        // Create baseline demonstration documents for the listing
-        const baselineDocs: PropertyDocument[] = [
-          {
-            id: `doc-demo-passbook-${property.id}`,
-            propertyId: property.id,
-            sellerId: property.sellerId,
-            documentType: 'PASSBOOK',
-            fileUrl: '#',
-            fileName: 'Dharani_Passbook_Verified.pdf',
-            analysisSummary: {
-              documentTypeDetected: 'Dharani Digital Pattadar Passbook',
-              confidenceScore: 98,
-              extractedDetails: {
-                surveyNumber: property.surveyNumber || 'Sy. 142/A',
-                extent: `${property.landSize} ${property.landUnit}`,
-                ownerName: property.sellerName,
-                village: property.locality,
-                district: property.district,
-              },
-              consistencyChecks: [
-                { check: 'Pattadar name', status: 'MATCH', detail: 'Matches seller identity record' },
-                { check: 'Survey number', status: 'MATCH', detail: 'Matches cadastral village map' },
-                { check: 'Section 22A check', status: 'MATCH', detail: 'Not under prohibited land category' },
-              ],
-              potentialRisks: [],
-              referenceVerification: {
-                dharaniOrGovtMatch: 'LIKELY_MATCH',
-                notes: 'Matches Dharani revenue digital ledger.',
-              },
-              summary:
-                'Clear digital passbook record registered with Telangana Revenue Department Dharani portal. Pattadar title matches seller identification.',
-              recommendedNextSteps: ['Proceed to boundary demarcation inspection.'],
-            },
-            status: 'VERIFIED_REF',
-            createdAt: new Date().toISOString(),
-          },
-          {
-            id: `doc-demo-ec-${property.id}`,
-            propertyId: property.id,
-            sellerId: property.sellerId,
-            documentType: 'ENCUMBRANCE_CERTIFICATE',
-            fileUrl: '#',
-            fileName: 'EC_30Years_Nil.pdf',
-            analysisSummary: {
-              documentTypeDetected: '30-Year Encumbrance Certificate (EC)',
-              confidenceScore: 95,
-              extractedDetails: {
-                surveyNumber: property.surveyNumber || 'Sy. 142/A',
-                extent: `${property.landSize} ${property.landUnit}`,
-                sroOffice: `${property.district} SRO`,
-              },
-              consistencyChecks: [
-                { check: 'Encumbrance liabilities', status: 'MATCH', detail: 'Zero active mortgages or bank attachments' },
-                { check: 'Chain of title', status: 'MATCH', detail: 'Continuous 30-year unbroken chain' },
-              ],
-              potentialRisks: [],
-              referenceVerification: {
-                dharaniOrGovtMatch: 'LIKELY_MATCH',
-                notes: 'IGRS search returned NIL encumbrance.',
-              },
-              summary:
-                'Registration Department search shows nil registered liabilities, court attachments, or conflicting sale deeds for the specified period.',
-              recommendedNextSteps: ['Obtain certified physical copy prior to final agreement.'],
-            },
-            status: 'VERIFIED_REF',
-            createdAt: new Date().toISOString(),
-          },
-        ];
-        setDocuments(baselineDocs);
-        setExpandedDocId(baselineDocs[0].id);
-      } else {
-        setDocuments(docs);
-        if (docs.length > 0) setExpandedDocId(docs[0].id);
+      setDocuments(docs);
+      if (docs.length > 0) {
+        setExpandedDocId(docs[0].id);
       }
     } catch (e) {
       console.warn('Error loading documents:', e);
@@ -128,7 +58,7 @@ export const DocumentIntelligenceCard: React.FC<DocumentIntelligenceCardProps> =
       const analysis = await documentService.analyzeDocument(
         docItem.documentType,
         docItem.fileName,
-        docNotes || 'Verified land title deed matching Telangana Dharani portal records.',
+        docNotes || `Verified Telangana revenue title deed matching Dharani record for Survey No. ${property.surveyNumber || '142/A'}.`,
         property
       );
       setDocuments((prev) =>
@@ -176,7 +106,7 @@ export const DocumentIntelligenceCard: React.FC<DocumentIntelligenceCardProps> =
             </h3>
             <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
               <ShieldCheck className="w-3.5 h-3.5 mr-1 text-emerald-600" />
-              Verified Repository
+              {documents.length > 0 ? 'Verified Repository' : 'Revenue Record Verification'}
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
@@ -187,7 +117,7 @@ export const DocumentIntelligenceCard: React.FC<DocumentIntelligenceCardProps> =
         {isSeller && (
           <button
             onClick={() => setUploadModalOpen(true)}
-            className="px-3.5 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white flex items-center space-x-1.5 shadow-xs transition-colors"
+            className="px-3.5 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white flex items-center space-x-1.5 shadow-xs transition-colors cursor-pointer"
           >
             <Upload className="w-3.5 h-3.5" />
             <span>Upload Document</span>
@@ -197,23 +127,45 @@ export const DocumentIntelligenceCard: React.FC<DocumentIntelligenceCardProps> =
 
       {/* Trust Badges */}
       <div className="flex flex-wrap gap-2">
-        {property.verificationBadges?.map((badge, idx) => (
-          <span
-            key={idx}
-            className="inline-flex items-center px-3 py-1 rounded-xl text-xs font-medium bg-slate-50 text-slate-700 border border-slate-200/80 shadow-2xs"
-          >
+        {property.verificationBadges && property.verificationBadges.length > 0 ? (
+          property.verificationBadges.map((badge, idx) => (
+            <span
+              key={idx}
+              className="inline-flex items-center px-3 py-1 rounded-xl text-xs font-medium bg-slate-50 text-slate-700 border border-slate-200/80 shadow-2xs"
+            >
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 mr-1.5 shrink-0" />
+              <span>{badge}</span>
+            </span>
+          ))
+        ) : (
+          <span className="inline-flex items-center px-3 py-1 rounded-xl text-xs font-medium bg-slate-50 text-slate-700 border border-slate-200/80 shadow-2xs">
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 mr-1.5 shrink-0" />
-            <span>{badge}</span>
+            <span>Direct Pattadar Landowner</span>
           </span>
-        ))}
+        )}
       </div>
 
       {/* Documents List */}
       {loading ? (
-        <div className="py-6 text-center text-xs text-slate-500 font-medium">Loading document vault...</div>
+        <div className="py-6 text-center text-xs text-slate-500 font-medium">Checking verified records...</div>
       ) : documents.length === 0 ? (
-        <div className="p-6 text-center text-xs text-slate-500 bg-slate-50 rounded-2xl border border-slate-200/80">
-          No public documents attached yet.
+        <div className="p-6 text-center text-xs text-slate-500 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-2">
+          <div className="w-10 h-10 rounded-2xl bg-white border border-slate-200 flex items-center justify-center mx-auto text-slate-400 shadow-2xs">
+            <Clock className="w-5 h-5 text-indigo-500" />
+          </div>
+          <p className="font-bold text-slate-800">No public documents uploaded yet for this parcel.</p>
+          <p className="text-[11px] text-slate-500 max-w-md mx-auto">
+            You can request verified Dharani passbook extracts or 30-year EC records directly from the landowner in chat.
+          </p>
+          {isSeller && (
+            <button
+              onClick={() => setUploadModalOpen(true)}
+              className="mt-2 inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-bold shadow-xs cursor-pointer"
+            >
+              <Upload className="w-3.5 h-3.5" />
+              <span>Upload Dharani Passbook / Revenue Document</span>
+            </button>
+          )}
         </div>
       ) : (
         <div className="space-y-3">
@@ -338,7 +290,7 @@ export const DocumentIntelligenceCard: React.FC<DocumentIntelligenceCardProps> =
                         <button
                           onClick={() => handleTriggerAnalysis(docItem)}
                           disabled={isAnalyzing}
-                          className="px-4 py-2.5 rounded-xl text-xs font-bold bg-indigo-600 text-white hover:bg-indigo-700 transition-colors disabled:opacity-50 inline-flex items-center space-x-2 shadow-xs"
+                          className="px-4 py-2.5 rounded-xl text-xs font-bold bg-indigo-600 text-white hover:bg-indigo-700 transition-colors disabled:opacity-50 inline-flex items-center space-x-2 shadow-xs cursor-pointer"
                         >
                           {isAnalyzing ? (
                             <>
@@ -377,12 +329,12 @@ export const DocumentIntelligenceCard: React.FC<DocumentIntelligenceCardProps> =
                   onChange={(e) => setSelectedDocType(e.target.value)}
                   className="w-full p-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-hidden"
                 >
-                  <option value="PASSBOOK">Dharani Digital Pattadar Passbook</option>
-                  <option value="ENCUMBRANCE_CERTIFICATE">Encumbrance Certificate (EC)</option>
-                  <option value="ROR_1B">Record of Rights (ROR 1B / Pahani)</option>
-                  <option value="SURVEY_SKETCH">Tippon / Village Cadastral Map</option>
-                  <option value="SALE_DEED">Registered Sale Deed (Registered SRO)</option>
-                  <option value="OTHER">Other NOC / Layout Approval</option>
+                  <option value="Dharani Digital Pattadar Passbook">Dharani Digital Pattadar Passbook</option>
+                  <option value="Encumbrance Certificate (EC)">Encumbrance Certificate (EC)</option>
+                  <option value="Record of Rights (ROR 1B / Pahani)">Record of Rights (ROR 1B / Pahani)</option>
+                  <option value="Tippon / Village Cadastral Map">Tippon / Village Cadastral Map</option>
+                  <option value="Registered Sale Deed">Registered Sale Deed (Registered SRO)</option>
+                  <option value="Other NOC / Layout Approval">Other NOC / Layout Approval</option>
                 </select>
               </div>
 
@@ -413,13 +365,13 @@ export const DocumentIntelligenceCard: React.FC<DocumentIntelligenceCardProps> =
                 <button
                   type="button"
                   onClick={() => setUploadModalOpen(false)}
-                  className="flex-1 py-2.5 text-xs font-bold border border-slate-200 rounded-xl hover:bg-slate-50 text-slate-700 transition-colors"
+                  className="flex-1 py-2.5 text-xs font-bold border border-slate-200 rounded-xl hover:bg-slate-50 text-slate-700 transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 text-xs font-bold bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors shadow-xs"
+                  className="flex-1 py-2.5 text-xs font-bold bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors shadow-xs cursor-pointer"
                 >
                   Save & Analyze
                 </button>
