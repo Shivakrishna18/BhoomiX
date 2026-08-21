@@ -1,12 +1,17 @@
 export type UserRole = 'BUYER' | 'SELLER' | 'ADMIN';
 
 export interface UserProfile {
-  id: string;
-  email: string;
+  id: string; // Canonical Auth UID (e.g. Firebase Auth user.uid)
+  userId?: string; // Canonical alias for id
+  firstName?: string;
+  lastName?: string;
   displayName: string;
+  email: string;
+  phoneNumber?: string;
   phone?: string;
-  role: UserRole;
+  profilePhoto?: string;
   avatarUrl?: string;
+  role: UserRole;
   createdAt: string;
   updatedAt?: string;
 }
@@ -156,11 +161,17 @@ export interface Conversation {
   propertyTitle: string;
   propertyLocation?: string;
   buyerId: string;
+  buyerUserId?: string; // Canonical buyer user ID
   buyerName: string;
+  buyerPhoto?: string;
   sellerId: string;
+  sellerUserId?: string; // Canonical seller user ID
   sellerName: string;
+  sellerPhoto?: string;
   lastMessage?: string;
   lastMessageTimestamp?: string;
+  lastMessageSenderId?: string;
+  unreadCount?: number;
   createdAt: string;
   updatedAt?: string;
 }
@@ -186,10 +197,15 @@ export interface ChatMediaAttachment {
 
 export interface Message {
   id: string;
+  messageId?: string;
   conversationId: string;
   senderId: string;
+  senderUserId?: string;
   senderName: string;
+  receiverId?: string;
+  receiverUserId?: string;
   body: string;
+  message?: string; // alias for body
   messageType?: MessageType;
   mediaAttachment?: ChatMediaAttachment;
   requestStatus?: 'PENDING' | 'APPROVED' | 'DECLINED';
@@ -209,7 +225,9 @@ export interface Message {
     mimeType?: string;
     [key: string]: any;
   };
+  status?: 'sending' | 'sent' | 'read' | 'failed';
   read?: boolean;
+  readAt?: string;
   createdAt: string;
 }
 

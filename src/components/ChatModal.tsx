@@ -113,12 +113,15 @@ export const ChatModal: React.FC<ChatModalProps> = ({
     }
   }, [isOpen, initialConv, property, sellerId, sellerName, currentUser]);
 
-  // Subscribe to real-time messages
+  // Subscribe to real-time messages & mark as read
   useEffect(() => {
     if (!activeConv?.id) return;
 
     const unsubscribe = chatService.subscribeToMessages(activeConv.id, (msgs) => {
       setMessages(msgs);
+      if (currentUser?.id) {
+        chatService.markMessagesAsRead(activeConv.id, currentUser.id);
+      }
       setTimeout(() => {
         if (scrollRef.current) {
           scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -126,8 +129,12 @@ export const ChatModal: React.FC<ChatModalProps> = ({
       }, 60);
     });
 
+    if (currentUser?.id) {
+      chatService.markMessagesAsRead(activeConv.id, currentUser.id);
+    }
+
     return () => unsubscribe();
-  }, [activeConv?.id]);
+  }, [activeConv?.id, currentUser?.id]);
 
   if (!isOpen) return null;
 
@@ -239,6 +246,8 @@ export const ChatModal: React.FC<ChatModalProps> = ({
           : 'DOCUMENT'
         : 'TEXT';
 
+      const recipientId = isBuyer ? activeConv.sellerId : activeConv.buyerId;
+
       await chatService.sendMessage(
         activeConv.id,
         currentUser.id,
@@ -247,10 +256,9 @@ export const ChatModal: React.FC<ChatModalProps> = ({
         messageType,
         undefined,
         undefined,
-        mediaToSend || undefined
+        mediaToSend || undefined,
+        recipientId
       );
-
-      const recipientId = isBuyer ? activeConv.sellerId : activeConv.buyerId;
       const notifSnippet = mediaToSend
         ? `${mediaToSend.fileType === 'image' ? '📷 Photo' : '📄 Document'}: ${mediaToSend.fileName}`
         : bodyToSend.length > 60

@@ -6,18 +6,19 @@ import { propertyService } from './services/propertyService';
 import { savedPropertyService } from './services/savedPropertyService';
 import { chatService } from './services/chatService';
 import { siteVisitService } from './services/siteVisitService';
+import { notificationService } from './services/notificationService';
 
 // Layout Components
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 
 // Modals
+import { AuthModal } from './components/AuthModal';
 import { ChatModal } from './components/ChatModal';
 import { SiteVisitModal } from './components/SiteVisitModal';
 import { CompareModal } from './components/CompareModal';
 import { NotificationsModal } from './components/NotificationsModal';
 import { CreateListingWizard } from './views/CreateListingWizard';
-import { notificationService } from './services/notificationService';
 
 // Main Views
 import { LandingView } from './views/LandingView';
@@ -29,24 +30,6 @@ import { BuyerDashboardView } from './views/BuyerDashboardView';
 import { TrustAndDocumentsView } from './views/TrustAndDocumentsView';
 import { HowItWorksView } from './views/HowItWorksView';
 
-const DEMO_BUYER_PROFILE: UserProfile = {
-  id: 'buyer_srikanth',
-  displayName: 'Srikanth Rao (Buyer)',
-  email: 'srikanth.rao@bhoomix.in',
-  role: 'BUYER',
-  phone: '+91 98490 12345',
-  createdAt: new Date().toISOString(),
-};
-
-const DEMO_SELLER_PROFILE: UserProfile = {
-  id: 'seller_venkat_reddy',
-  displayName: 'Venkata Reddy (Pattadar)',
-  email: 's16677481@gmail.com',
-  role: 'SELLER',
-  phone: '+91 98480 54321',
-  createdAt: new Date().toISOString(),
-};
-
 export default function App() {
   // Role & Perspective State: BUYER or SELLER
   const [activeRole, setActiveRole] = useState<'BUYER' | 'SELLER'>('BUYER');
@@ -56,8 +39,10 @@ export default function App() {
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  // User & Data State
-  const [currentUser, setCurrentUser] = useState<UserProfile>(DEMO_BUYER_PROFILE);
+  // User & Data State - defaults to null unless authenticated
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(() =>
+    authService.getCurrentStoredProfile()
+  );
   const [properties, setProperties] = useState<Property[]>(INITIAL_TELANGANA_PROPERTIES);
   const [savedProperties, setSavedProperties] = useState<SavedProperty[]>([]);
   const [savedPropertyIds, setSavedPropertyIds] = useState<Set<string>>(new Set());
@@ -67,6 +52,8 @@ export default function App() {
   const [loading, setLoading] = useState<boolean>(true);
 
   // Modals
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authModalInitialRole, setAuthModalInitialRole] = useState<'BUYER' | 'SELLER'>('BUYER');
   const [chatModalOpen, setChatModalOpen] = useState(false);
   const [activeChatProperty, setActiveChatProperty] = useState<Property | null>(null);
   const [activeChatSellerId, setActiveChatSellerId] = useState<string>('');
@@ -82,8 +69,10 @@ export default function App() {
   useEffect(() => {
     const unsubscribe = authService.onAuthChange((user) => {
       setCurrentUser(user);
-      if (user.role === 'SELLER' || user.role === 'BUYER') {
-        setActiveRole(user.role);
+      if (user) {
+        if (user.role === 'SELLER' || user.role === 'BUYER') {
+          setActiveRole(user.role);
+        }
       }
     });
 
@@ -115,6 +104,7 @@ export default function App() {
       setSavedPropertyIds(new Set());
       setConversations([]);
       setSiteVisits([]);
+      setUnreadNotifsCount(0);
       return;
     }
 
@@ -137,10 +127,14 @@ export default function App() {
   }, [currentUser]);
 
   useEffect(() => {
-    // Run 30-day old chats pruning on startup
-    chatService.cleanUpOldChats();
-
     loadUserData();
+
+    if (!currentUser) return;
+
+    // Real-time listener for user conversations
+    const unsubConvs = chatService.subscribeToUserConversations(currentUser.id, (list) => {
+      setConversations(list);
+    });
 
     const handleNewNotif = () => {
       setUnreadNotifsCount((prev) => prev + 1);
@@ -157,6 +151,15 @@ export default function App() {
     window.addEventListener('bhoomix_new_notification', handleNewNotif);
     window.addEventListener('bhoomix_conv_updated', handleChatUpdate);
 
+    return () => {
+      unsubConvs();
+      if (debounceTimer) clearTimeout(debounceTimer);
+      window.removeEventListener('bhoomix_new_notification', handleNewNotif);
+      window.removeEventListener('bhoomix_conv_updated', handleChatUpdate);
+    };
+  }, [currentUser, loadUserData]);
+
+  useEffect(() => {
     const handlePropertyChange = (e: any) => {
       loadProperties();
       if (e?.detail?.id && selectedProperty?.id === e.detail.id) {
@@ -169,17 +172,36 @@ export default function App() {
     window.addEventListener('bhoomix_property_deleted', handlePropertyChange);
 
     return () => {
-      if (debounceTimer) clearTimeout(debounceTimer);
-      window.removeEventListener('bhoomix_new_notification', handleNewNotif);
-      window.removeEventListener('bhoomix_conv_updated', handleChatUpdate);
       window.removeEventListener('bhoomix_property_created', handlePropertyChange);
       window.removeEventListener('bhoomix_property_updated', handlePropertyChange);
       window.removeEventListener('bhoomix_property_deleted', handlePropertyChange);
     };
-  }, [loadUserData, loadProperties, selectedProperty?.id]);
+  }, [loadProperties, selectedProperty?.id]);
+
+  // Complete Sign Out Handler
+  const handleSignOut = async () => {
+    await authService.signOut();
+    setCurrentUser(null);
+    setActiveTab('landing');
+    setSelectedProperty(null);
+    setSavedProperties([]);
+    setSavedPropertyIds(new Set());
+    setConversations([]);
+    setSiteVisits([]);
+    setUnreadNotifsCount(0);
+    setChatModalOpen(false);
+    setSiteVisitModalOpen(false);
+    setCreateWizardOpen(false);
+  };
 
   // Toggle Save Property
   const handleToggleSave = async (property: Property) => {
+    if (!currentUser) {
+      setAuthModalInitialRole('BUYER');
+      setAuthModalOpen(true);
+      return;
+    }
+
     const isAlreadySaved = savedPropertyIds.has(property.id);
     try {
       if (isAlreadySaved) {
@@ -210,14 +232,24 @@ export default function App() {
 
   // Initiate Chat
   const handleStartChat = (property: Property) => {
+    if (!currentUser) {
+      setAuthModalInitialRole('BUYER');
+      setAuthModalOpen(true);
+      return;
+    }
     setActiveChatProperty(property);
-    setActiveChatSellerId(property.sellerId);
+    setActiveChatSellerId(property.sellerId || property.sellerUserId || 'seller_venkat_reddy');
     setActiveChatSellerName(property.sellerName || 'Landowner');
     setChatModalOpen(true);
   };
 
   // Initiate Site Visit
   const handleScheduleVisit = (property: Property) => {
+    if (!currentUser) {
+      setAuthModalInitialRole('BUYER');
+      setAuthModalOpen(true);
+      return;
+    }
     setActiveVisitProperty(property);
     setSiteVisitModalOpen(true);
   };
@@ -236,9 +268,14 @@ export default function App() {
   };
 
   // Filter properties belonging to the current seller
-  const sellerProperties = properties.filter(
-    (p) => p.sellerId === currentUser.id || p.sellerId === 'seller_venkat_reddy' || p.sellerName?.includes('Venkat')
-  );
+  const sellerProperties = currentUser
+    ? properties.filter(
+        (p) =>
+          p.sellerId === currentUser.id ||
+          p.sellerUserId === currentUser.id ||
+          (currentUser.role === 'SELLER' && p.sellerName === currentUser.displayName)
+      )
+    : [];
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-100 font-sans text-slate-900 antialiased selection:bg-indigo-200 selection:text-indigo-900">
@@ -261,12 +298,31 @@ export default function App() {
           setActiveTab(tab);
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
-        onOpenCreateWizard={() => setCreateWizardOpen(true)}
+        onOpenCreateWizard={() => {
+          if (!currentUser) {
+            setAuthModalInitialRole('SELLER');
+            setAuthModalOpen(true);
+          } else {
+            setCreateWizardOpen(true);
+          }
+        }}
+        onOpenAuth={(role) => {
+          setAuthModalInitialRole(role || 'BUYER');
+          setAuthModalOpen(true);
+        }}
+        onSignOut={handleSignOut}
         savedCount={savedProperties.length}
         compareCount={compareList.length}
         onOpenCompare={() => setCompareModalOpen(true)}
         unreadNotifsCount={unreadNotifsCount}
-        onOpenNotifications={() => setNotificationsModalOpen(true)}
+        onOpenNotifications={() => {
+          if (!currentUser) {
+            setAuthModalInitialRole('BUYER');
+            setAuthModalOpen(true);
+          } else {
+            setNotificationsModalOpen(true);
+          }
+        }}
       />
 
       {/* Main App Body */}
@@ -275,7 +331,7 @@ export default function App() {
           <PropertyDetailView
             property={selectedProperty}
             onBack={() => setSelectedProperty(null)}
-            currentUser={currentUser}
+            currentUser={currentUser || undefined}
             isSaved={savedPropertyIds.has(selectedProperty.id)}
             onToggleSave={() => handleToggleSave(selectedProperty)}
             isCompared={compareList.some((c) => c.id === selectedProperty.id)}
@@ -294,8 +350,13 @@ export default function App() {
                 savedPropertyIds={savedPropertyIds}
                 onToggleSave={handleToggleSave}
                 onOpenSellerStudio={() => {
-                  setActiveRole('SELLER');
-                  setActiveTab('seller');
+                  if (!currentUser) {
+                    setAuthModalInitialRole('SELLER');
+                    setAuthModalOpen(true);
+                  } else {
+                    setActiveRole('SELLER');
+                    setActiveTab('seller');
+                  }
                 }}
               />
             )}
@@ -316,7 +377,7 @@ export default function App() {
             {activeTab === 'recommendations' && (
               <AIMatchmakerView
                 properties={properties}
-                currentUser={currentUser}
+                currentUser={currentUser || undefined}
                 onSelectProperty={handleSelectProperty}
                 savedPropertyIds={savedPropertyIds}
                 onToggleSave={handleToggleSave}
@@ -324,50 +385,92 @@ export default function App() {
             )}
 
             {activeTab === 'seller' && (
-              <SellerStudioView
-                currentUser={currentUser}
-                sellerProperties={sellerProperties}
-                siteVisits={siteVisits}
-                conversations={conversations}
-                onOpenChat={(conv) => {
-                  const foundProp = properties.find((p) => p.id === conv.propertyId);
-                  setActiveChatProperty(foundProp || null);
-                  setActiveChatSellerId(conv.sellerId);
-                  setActiveChatSellerName(conv.sellerName || 'Landowner');
-                  setChatModalOpen(true);
-                }}
-                onSelectProperty={handleSelectProperty}
-                onRefreshData={() => {
-                  loadProperties();
-                  loadUserData();
-                }}
-                onOpenCreateWizard={() => setCreateWizardOpen(true)}
-              />
+              currentUser ? (
+                <SellerStudioView
+                  currentUser={currentUser}
+                  sellerProperties={sellerProperties}
+                  siteVisits={siteVisits}
+                  conversations={conversations}
+                  onOpenChat={(conv) => {
+                    const foundProp = properties.find((p) => p.id === conv.propertyId);
+                    setActiveChatProperty(foundProp || null);
+                    setActiveChatSellerId(conv.sellerId);
+                    setActiveChatSellerName(conv.sellerName || 'Landowner');
+                    setChatModalOpen(true);
+                  }}
+                  onSelectProperty={handleSelectProperty}
+                  onRefreshData={() => {
+                    loadProperties();
+                    loadUserData();
+                  }}
+                  onOpenCreateWizard={() => setCreateWizardOpen(true)}
+                />
+              ) : (
+                <div className="max-w-md mx-auto my-16 p-8 bg-white rounded-3xl border border-slate-200 text-center space-y-4 shadow-sm">
+                  <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto font-bold text-lg">
+                    🔒
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-900">Sign in to Access Seller Studio</h3>
+                  <p className="text-xs text-slate-500">
+                    Direct pattadar landowners can manage listings, chat with prospective buyers, and coordinate visits.
+                  </p>
+                  <button
+                    onClick={() => {
+                      setAuthModalInitialRole('SELLER');
+                      setAuthModalOpen(true);
+                    }}
+                    className="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors cursor-pointer"
+                  >
+                    Sign In or Create Seller Account
+                  </button>
+                </div>
+              )
             )}
 
             {activeTab === 'buyer' && (
-              <BuyerDashboardView
-                currentUser={currentUser}
-                savedProperties={savedProperties}
-                conversations={conversations}
-                siteVisits={siteVisits}
-                onSelectPropertyId={(id) => {
-                  const found = properties.find((p) => p.id === id);
-                  if (found) handleSelectProperty(found);
-                }}
-                onOpenChat={(conv) => {
-                  const foundProp = properties.find((p) => p.id === conv.propertyId);
-                  setActiveChatProperty(foundProp || null);
-                  setActiveChatSellerId(conv.sellerId);
-                  setActiveChatSellerName(conv.sellerName || 'Landowner');
-                  setChatModalOpen(true);
-                }}
-                onNavigateTab={setActiveTab}
-                onUnsaveProperty={async (propId) => {
-                  await savedPropertyService.unsaveProperty(currentUser.id, propId);
-                  loadUserData();
-                }}
-              />
+              currentUser ? (
+                <BuyerDashboardView
+                  currentUser={currentUser}
+                  savedProperties={savedProperties}
+                  conversations={conversations}
+                  siteVisits={siteVisits}
+                  onSelectPropertyId={(id) => {
+                    const found = properties.find((p) => p.id === id);
+                    if (found) handleSelectProperty(found);
+                  }}
+                  onOpenChat={(conv) => {
+                    const foundProp = properties.find((p) => p.id === conv.propertyId);
+                    setActiveChatProperty(foundProp || null);
+                    setActiveChatSellerId(conv.sellerId);
+                    setActiveChatSellerName(conv.sellerName || 'Landowner');
+                    setChatModalOpen(true);
+                  }}
+                  onNavigateTab={setActiveTab}
+                  onUnsaveProperty={async (propId) => {
+                    await savedPropertyService.unsaveProperty(currentUser.id, propId);
+                    loadUserData();
+                  }}
+                />
+              ) : (
+                <div className="max-w-md mx-auto my-16 p-8 bg-white rounded-3xl border border-slate-200 text-center space-y-4 shadow-sm">
+                  <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto font-bold text-lg">
+                    🔒
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-900">Sign in to Access Buyer Hub</h3>
+                  <p className="text-xs text-slate-500">
+                    Keep track of your saved land parcels, direct owner conversations, and confirmed site visit bookings.
+                  </p>
+                  <button
+                    onClick={() => {
+                      setAuthModalInitialRole('BUYER');
+                      setAuthModalOpen(true);
+                    }}
+                    className="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors cursor-pointer"
+                  >
+                    Sign In or Create Buyer Account
+                  </button>
+                </div>
+              )
             )}
 
             {activeTab === 'trust' && <TrustAndDocumentsView />}
@@ -376,8 +479,13 @@ export default function App() {
               <HowItWorksView
                 onNavigate={setActiveTab}
                 onOpenSellerStudio={() => {
-                  setActiveRole('SELLER');
-                  setActiveTab('seller');
+                  if (!currentUser) {
+                    setAuthModalInitialRole('SELLER');
+                    setAuthModalOpen(true);
+                  } else {
+                    setActiveRole('SELLER');
+                    setActiveTab('seller');
+                  }
                 }}
               />
             )}
@@ -385,7 +493,20 @@ export default function App() {
         )}
       </main>
 
-      {/* Global Modals */}
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        initialRole={authModalInitialRole}
+        onSuccess={(user) => {
+          setCurrentUser(user);
+          setActiveRole(user.role);
+          setAuthModalOpen(false);
+          loadUserData();
+        }}
+      />
+
+      {/* Global Modals for Authenticated Users */}
       {currentUser && (
         <>
           <ChatModal
