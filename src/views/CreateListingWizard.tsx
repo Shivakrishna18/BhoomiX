@@ -50,7 +50,7 @@ export const CreateListingWizard: React.FC<CreateListingWizardProps> = ({
   // 1. Seller & Owner Profile Identity
   const [ownerName, setOwnerName] = useState(currentUser.displayName || '');
   const [sellerEmail, setSellerEmail] = useState(currentUser.email || '');
-  const [sellerPhone, setSellerPhone] = useState(currentUser.phone || '+91 98480 54321');
+  const [sellerPhone, setSellerPhone] = useState(currentUser.phone || currentUser.phoneNumber || '');
 
   // 2. Land Location & Specifications
   const [title, setTitle] = useState('');

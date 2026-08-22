@@ -23,7 +23,7 @@ export const SiteVisitModal: React.FC<SiteVisitModalProps> = ({
     new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0]
   );
   const [timeSlot, setTimeSlot] = useState<'MORNING' | 'AFTERNOON' | 'EVENING'>('MORNING');
-  const [buyerPhone, setBuyerPhone] = useState(currentUser.phone || '');
+  const [buyerPhone, setBuyerPhone] = useState(currentUser.phone || currentUser.phoneNumber || '');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -39,8 +39,8 @@ export const SiteVisitModal: React.FC<SiteVisitModalProps> = ({
         propertyTitle: property.title,
         propertyLocation: property.locality,
         buyerId: currentUser.id,
-        buyerName: currentUser.displayName || 'Buyer',
-        buyerPhone: buyerPhone || '+91 98480 00000',
+        buyerName: currentUser.displayName || 'Direct Buyer',
+        buyerPhone: buyerPhone.trim() || 'Contact provided in chat',
         sellerId: property.sellerId,
         sellerName: property.sellerName,
         date: preferredDate,

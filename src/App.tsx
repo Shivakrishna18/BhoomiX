@@ -14,6 +14,7 @@ import { Footer } from './components/Footer';
 
 // Modals
 import { AuthModal } from './components/AuthModal';
+import { UserProfileModal } from './components/UserProfileModal';
 import { ChatModal } from './components/ChatModal';
 import { SiteVisitModal } from './components/SiteVisitModal';
 import { CompareModal } from './components/CompareModal';
@@ -54,6 +55,7 @@ export default function App() {
   // Modals
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalInitialRole, setAuthModalInitialRole] = useState<'BUYER' | 'SELLER'>('BUYER');
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [chatModalOpen, setChatModalOpen] = useState(false);
   const [activeChatProperty, setActiveChatProperty] = useState<Property | null>(null);
   const [activeChatSellerId, setActiveChatSellerId] = useState<string>('');
@@ -373,6 +375,7 @@ export default function App() {
           setAuthModalInitialRole(role || 'BUYER');
           setAuthModalOpen(true);
         }}
+        onOpenProfileModal={() => setProfileModalOpen(true)}
         onSignOut={handleSignOut}
         savedCount={savedProperties.length}
         compareCount={compareList.length}
@@ -467,6 +470,7 @@ export default function App() {
                     loadUserData();
                   }}
                   onOpenCreateWizard={() => setCreateWizardOpen(true)}
+                  onOpenProfileModal={() => setProfileModalOpen(true)}
                 />
               ) : (
                 <div className="max-w-md mx-auto my-16 p-8 bg-white rounded-3xl border border-slate-200 text-center space-y-4 shadow-sm">
@@ -513,6 +517,7 @@ export default function App() {
                     await savedPropertyService.unsaveProperty(currentUser.id, propId);
                     loadUserData();
                   }}
+                  onOpenProfileModal={() => setProfileModalOpen(true)}
                 />
               ) : (
                 <div className="max-w-md mx-auto my-16 p-8 bg-white rounded-3xl border border-slate-200 text-center space-y-4 shadow-sm">
@@ -572,6 +577,16 @@ export default function App() {
       {/* Global Modals for Authenticated Users */}
       {currentUser && (
         <>
+          <UserProfileModal
+            isOpen={profileModalOpen}
+            onClose={() => setProfileModalOpen(false)}
+            currentUser={currentUser}
+            onProfileUpdated={(updated) => {
+              setCurrentUser(updated);
+              loadUserData();
+            }}
+          />
+
           <ChatModal
             isOpen={chatModalOpen}
             onClose={() => setChatModalOpen(false)}
@@ -579,6 +594,10 @@ export default function App() {
             property={activeChatProperty}
             sellerId={activeChatSellerId}
             sellerName={activeChatSellerName}
+            onUpdateCurrentUserProfile={(updated) => {
+              setCurrentUser(updated);
+              loadUserData();
+            }}
           />
 
           <SiteVisitModal

@@ -24,6 +24,7 @@ import {
 import { Property, UserProfile, SiteVisit, Conversation } from '../types';
 import { propertyService } from '../services/propertyService';
 import { siteVisitService } from '../services/siteVisitService';
+import { Settings } from 'lucide-react';
 
 interface SellerStudioViewProps {
   currentUser: UserProfile;
@@ -34,6 +35,7 @@ interface SellerStudioViewProps {
   onSelectProperty: (property: Property) => void;
   onRefreshData: () => void;
   onOpenCreateWizard: () => void;
+  onOpenProfileModal?: () => void;
 }
 
 export const SellerStudioView: React.FC<SellerStudioViewProps> = ({
@@ -45,6 +47,7 @@ export const SellerStudioView: React.FC<SellerStudioViewProps> = ({
   onSelectProperty,
   onRefreshData,
   onOpenCreateWizard,
+  onOpenProfileModal,
 }) => {
   const [activeTab, setActiveTab] = useState<'listings' | 'visits' | 'chats'>('listings');
   const [updatingVisitId, setUpdatingVisitId] = useState<string | null>(null);
@@ -109,15 +112,32 @@ export const SellerStudioView: React.FC<SellerStudioViewProps> = ({
           <p className="text-xs sm:text-sm text-slate-400 max-w-2xl">
             Welcome back, <span className="font-semibold text-slate-200">{currentUser.displayName}</span>. Manage your published land listings, review AI Dharani verifications, chat with prospective buyers, and coordinate physical site visit bookings.
           </p>
+          {currentUser.phone && (
+            <p className="text-xs text-emerald-400 font-mono flex items-center space-x-1.5 pt-1">
+              <span>📞 Landowner Contact Number: {currentUser.phone}</span>
+            </p>
+          )}
         </div>
 
-        <button
-          onClick={onOpenCreateWizard}
-          className="px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold flex items-center space-x-2 shadow-sm transition-all shrink-0 cursor-pointer"
-        >
-          <PlusCircle className="w-4 h-4" />
-          <span>+ List New Land Parcel</span>
-        </button>
+        <div className="flex items-center space-x-3 shrink-0">
+          {onOpenProfileModal && (
+            <button
+              onClick={onOpenProfileModal}
+              className="px-4 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs sm:text-sm font-semibold flex items-center space-x-2 border border-slate-700 transition-all cursor-pointer"
+            >
+              <Settings className="w-4 h-4 text-slate-300" />
+              <span>Edit Landowner Profile</span>
+            </button>
+          )}
+
+          <button
+            onClick={onOpenCreateWizard}
+            className="px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold flex items-center space-x-2 shadow-sm transition-all shrink-0 cursor-pointer"
+          >
+            <PlusCircle className="w-4 h-4" />
+            <span>+ List New Land Parcel</span>
+          </button>
+        </div>
       </div>
 
       {/* Metrics Row */}

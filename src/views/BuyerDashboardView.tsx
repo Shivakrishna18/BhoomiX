@@ -12,6 +12,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { UserProfile, SavedProperty, Conversation, SiteVisit, Property } from '../types';
+import { Settings } from 'lucide-react';
 
 interface BuyerDashboardViewProps {
   currentUser: UserProfile;
@@ -22,6 +23,7 @@ interface BuyerDashboardViewProps {
   onOpenChat: (conv: Conversation) => void;
   onNavigateTab: (tab: string) => void;
   onUnsaveProperty: (propId: string) => void;
+  onOpenProfileModal?: () => void;
 }
 
 export const BuyerDashboardView: React.FC<BuyerDashboardViewProps> = ({
@@ -33,6 +35,7 @@ export const BuyerDashboardView: React.FC<BuyerDashboardViewProps> = ({
   onOpenChat,
   onNavigateTab,
   onUnsaveProperty,
+  onOpenProfileModal,
 }) => {
   const [activeSubTab, setActiveSubTab] = useState<'saved' | 'chats' | 'visits'>('saved');
 
@@ -57,15 +60,36 @@ export const BuyerDashboardView: React.FC<BuyerDashboardViewProps> = ({
           <p className="text-xs sm:text-sm text-slate-400 max-w-2xl">
             Welcome back, <span className="font-semibold text-slate-200">{currentUser.displayName}</span>. Monitor your bookmarked land parcels, direct owner conversations, and confirmed physical site inspections.
           </p>
+          {currentUser.phone ? (
+            <p className="text-xs text-emerald-400 font-mono flex items-center space-x-1.5 pt-1">
+              <span>📞 Contact Number: {currentUser.phone}</span>
+            </p>
+          ) : (
+            <p className="text-xs text-amber-300 font-medium flex items-center space-x-1.5 pt-1">
+              <span>⚠️ No phone number in profile. Add phone to easily share contacts with landowners.</span>
+            </p>
+          )}
         </div>
 
-        <button
-          onClick={() => onNavigateTab('recommendations')}
-          className="px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold flex items-center space-x-2 shadow-xs transition-all shrink-0"
-        >
-          <Sparkles className="w-4 h-4 text-amber-300" />
-          <span>Open AI Matchmaker</span>
-        </button>
+        <div className="flex items-center space-x-3 shrink-0">
+          {onOpenProfileModal && (
+            <button
+              onClick={onOpenProfileModal}
+              className="px-4 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs sm:text-sm font-semibold flex items-center space-x-2 border border-slate-700 transition-all cursor-pointer"
+            >
+              <Settings className="w-4 h-4 text-slate-300" />
+              <span>Edit Profile & Phone</span>
+            </button>
+          )}
+
+          <button
+            onClick={() => onNavigateTab('recommendations')}
+            className="px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold flex items-center space-x-2 shadow-xs transition-all shrink-0 cursor-pointer"
+          >
+            <Sparkles className="w-4 h-4 text-amber-300" />
+            <span>Open AI Matchmaker</span>
+          </button>
+        </div>
       </div>
 
       {/* Metrics Row */}

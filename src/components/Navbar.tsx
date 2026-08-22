@@ -30,6 +30,7 @@ interface NavbarProps {
   onNavigate: (tab: string) => void;
   onOpenCreateWizard: () => void;
   onOpenAuth?: (role?: UserRole) => void;
+  onOpenProfileModal?: () => void;
   onSignOut?: () => void;
   savedCount: number;
   compareCount?: number;
@@ -46,6 +47,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onNavigate,
   onOpenCreateWizard,
   onOpenAuth,
+  onOpenProfileModal,
   onSignOut,
   savedCount,
   compareCount = 0,
@@ -293,6 +295,19 @@ export const Navbar: React.FC<NavbarProps> = ({
                       </div>
                     </div>
 
+                    {onOpenProfileModal && (
+                      <button
+                        onClick={() => {
+                          setProfileDropdownOpen(false);
+                          onOpenProfileModal();
+                        }}
+                        className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-indigo-50 hover:text-indigo-900 flex items-center space-x-2 transition-colors cursor-pointer"
+                      >
+                        <Settings className="w-4 h-4 text-indigo-600" />
+                        <span>Edit Profile & Contact Details</span>
+                      </button>
+                    )}
+
                     <button
                       onClick={() => handleNav(currentUser.role === 'SELLER' ? 'seller' : 'buyer')}
                       className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-indigo-50 hover:text-indigo-900 flex items-center space-x-2 transition-colors cursor-pointer"
@@ -530,6 +545,19 @@ export const Navbar: React.FC<NavbarProps> = ({
               >
                 <PlusCircle className="w-4 h-4" />
                 <span>+ List New Land Parcel</span>
+              </button>
+            )}
+
+            {currentUser && onOpenProfileModal && (
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenProfileModal();
+                }}
+                className="w-full py-2.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-800 border border-slate-200 flex items-center justify-center space-x-2"
+              >
+                <Settings className="w-4 h-4 text-indigo-600" />
+                <span>Edit Profile & Contact Number</span>
               </button>
             )}
 

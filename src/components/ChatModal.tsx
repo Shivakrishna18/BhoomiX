@@ -21,9 +21,12 @@ import {
   MessageSquare,
   Share2,
   MessageCircle,
+  AlertCircle,
+  User,
 } from 'lucide-react';
 import { Conversation, Message, Property, UserProfile, ChatMediaAttachment } from '../types';
 import { chatService } from '../services/chatService';
+import { authService } from '../services/authService';
 import { notificationService } from '../services/notificationService';
 import { siteVisitService } from '../services/siteVisitService';
 
@@ -35,6 +38,7 @@ interface ChatModalProps {
   sellerName?: string;
   currentUser: UserProfile;
   onClose: () => void;
+  onUpdateCurrentUserProfile?: (updated: UserProfile) => void;
 }
 
 export const ChatModal: React.FC<ChatModalProps> = ({
@@ -45,6 +49,7 @@ export const ChatModal: React.FC<ChatModalProps> = ({
   sellerName,
   currentUser,
   onClose,
+  onUpdateCurrentUserProfile,
 }) => {
   const [activeConv, setActiveConv] = useState<Conversation | null>(initialConv || null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -54,10 +59,19 @@ export const ChatModal: React.FC<ChatModalProps> = ({
   const [copiedPhone, setCopiedPhone] = useState(false);
   const [copiedTopPhone, setCopiedTopPhone] = useState(false);
 
-  // Phone share modal state for seller
+  // Resolved dynamic counterparty profiles from Firestore
+  const [counterpartyName, setCounterpartyName] = useState<string>('');
+
+  // Phone share confirmation modal & missing phone prompt modal
+  const [showShareConfirmModal, setShowShareConfirmModal] = useState(false);
+  const [showAddPhoneModal, setShowAddPhoneModal] = useState(false);
+  const [newPhoneInput, setNewPhoneInput] = useState('');
+  const [phoneActionError, setPhoneActionError] = useState<string | null>(null);
+  const [isSavingPhone, setIsSavingPhone] = useState(false);
+
+  // Seller custom response to phone request
   const [phonePromptMsgId, setPhonePromptMsgId] = useState<string | null>(null);
-  const [phoneNumberInput, setPhoneNumberInput] = useState(() => currentUser.phone || property?.sellerPhone || '+91 98480 54321');
-  const [phoneShareError, setPhoneShareError] = useState<string | null>(null);
+  const [customSellerPhoneInput, setCustomSellerPhoneInput] = useState('');
 
   // Staged Media Attachment
   const [stagedMedia, setStagedMedia] = useState<ChatMediaAttachment | null>(null);
@@ -88,7 +102,7 @@ export const ChatModal: React.FC<ChatModalProps> = ({
 
     if (property && (sellerId || property.sellerId)) {
       const targetSellerId = sellerId || property.sellerId;
-      const targetSellerName = sellerName || property.sellerName || 'Direct Landowner';
+      const targetSellerName = sellerName || property.sellerName || 'Landowner';
 
       setLoadingConv(true);
       chatService
@@ -97,7 +111,7 @@ export const ChatModal: React.FC<ChatModalProps> = ({
           property.title,
           `${property.locality}, ${property.district}`,
           currentUser.id,
-          currentUser.displayName || 'Prospective Buyer',
+          currentUser.displayName || `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() || 'Direct Buyer',
           targetSellerId,
           targetSellerName
         )
@@ -112,6 +126,40 @@ export const ChatModal: React.FC<ChatModalProps> = ({
         });
     }
   }, [isOpen, initialConv, property, sellerId, sellerName, currentUser]);
+
+  // Dynamically resolve real counterparty display name from Firestore if needed
+  useEffect(() => {
+    if (!activeConv) return;
+    const isUserSeller = currentUser.id === activeConv.sellerId || (currentUser.role === 'SELLER' && currentUser.id !== activeConv.buyerId);
+    
+    if (isUserSeller) {
+      // Look up buyer's real profile
+      if (activeConv.buyerId) {
+        authService.getUserProfileById(activeConv.buyerId).then((buyerProfile) => {
+          if (buyerProfile?.displayName) {
+            setCounterpartyName(buyerProfile.displayName);
+          } else if (activeConv.buyerName) {
+            setCounterpartyName(activeConv.buyerName);
+          }
+        });
+      } else {
+        setCounterpartyName(activeConv.buyerName || 'Buyer');
+      }
+    } else {
+      // Look up seller's profile
+      if (activeConv.sellerId) {
+        authService.getUserProfileById(activeConv.sellerId).then((sellerProfile) => {
+          if (sellerProfile?.displayName) {
+            setCounterpartyName(sellerProfile.displayName);
+          } else if (activeConv.sellerName) {
+            setCounterpartyName(activeConv.sellerName);
+          }
+        });
+      } else {
+        setCounterpartyName(activeConv.sellerName || property?.sellerName || 'Landowner');
+      }
+    }
+  }, [activeConv, currentUser]);
 
   // Subscribe to real-time messages & mark as read
   useEffect(() => {
@@ -148,14 +196,148 @@ export const ChatModal: React.FC<ChatModalProps> = ({
   const sharedPhoneFromMessages = messages
     .slice()
     .reverse()
-    .find((m) => m.metadata?.phoneNumber || (m.messageType === 'PHONE_NUMBER_SHARED' && m.body?.includes('+91')) || (m.messageType === 'PHONE_NUMBER_REQUEST' && m.requestStatus === 'APPROVED' && m.metadata?.phoneNumber))
-    ?.metadata?.phoneNumber || null;
+    .find(
+      (m) =>
+        m.metadata?.phoneNumber ||
+        (m.messageType === 'PHONE_NUMBER_SHARED' && m.body?.includes('+91')) ||
+        (m.messageType === 'PHONE_NUMBER_REQUEST' && m.requestStatus === 'APPROVED' && m.metadata?.phoneNumber)
+    )?.metadata?.phoneNumber || null;
 
-  const activeContactPhone = sharedPhoneFromMessages || (activeConv?.metadata as any)?.sharedPhoneNumber || (isBuyer && messages.some(m => m.requestStatus === 'APPROVED') ? property?.sellerPhone : null);
+  const activeContactPhone =
+    sharedPhoneFromMessages ||
+    (activeConv?.metadata as any)?.sharedPhoneNumber ||
+    null;
 
   const cleanPhoneForLinks = (phoneStr?: string | null) => {
     if (!phoneStr) return '';
     return phoneStr.replace(/[^0-9]/g, '');
+  };
+
+  const getActiveUserPhone = () => {
+    return currentUser.phone || currentUser.phoneNumber || '';
+  };
+
+  // 1. Click "Share My Phone" or "Share Landowner Number"
+  const handleInitiateSharePhone = () => {
+    const existingPhone = getActiveUserPhone().trim();
+    const digits = existingPhone.replace(/\D/g, '');
+
+    if (existingPhone && digits.length >= 10) {
+      setPhoneActionError(null);
+      setShowShareConfirmModal(true);
+    } else {
+      setNewPhoneInput('');
+      setPhoneActionError(null);
+      setShowAddPhoneModal(true);
+    }
+  };
+
+  // 2. Confirm and Share existing phone number from profile
+  const handleConfirmShareExistingPhone = async () => {
+    if (!activeConv || sending) return;
+    const phoneToShare = getActiveUserPhone().trim();
+    if (!phoneToShare) return;
+
+    setSending(true);
+    setShowShareConfirmModal(false);
+
+    try {
+      const senderDisplayName = currentUser.displayName || (isSeller ? 'Landowner' : 'Direct Buyer');
+      const shareText = isSeller
+        ? `${senderDisplayName} (Landowner) shared direct contact number: ${phoneToShare}`
+        : `${senderDisplayName} shared contact number: ${phoneToShare}`;
+
+      await chatService.sendMessage(
+        activeConv.id,
+        currentUser.id,
+        senderDisplayName,
+        shareText,
+        'PHONE_NUMBER_SHARED',
+        'APPROVED',
+        {
+          phoneNumber: phoneToShare,
+          senderRole: isSeller ? 'SELLER' : 'BUYER',
+        }
+      );
+
+      const recipientId = isBuyer ? activeConv.sellerId : activeConv.buyerId;
+      await notificationService.addNotification({
+        userId: recipientId,
+        type: 'PHONE_SHARED',
+        title: `Direct Phone Number Shared by ${senderDisplayName}`,
+        message: `${senderDisplayName} shared contact number: ${phoneToShare}`,
+        propertyId: activeConv.propertyId,
+        conversationId: activeConv.id,
+      });
+    } catch (e) {
+      console.error('Error sharing phone number:', e);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  // 3. Save new phone to user's profile and immediately share it
+  const handleSaveAndShareNewPhone = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPhoneActionError(null);
+
+    const digits = newPhoneInput.replace(/\D/g, '');
+    if (digits.length < 10) {
+      setPhoneActionError('Please enter a valid 10-digit mobile number (+91).');
+      return;
+    }
+
+    const formattedPhone = newPhoneInput.trim().startsWith('+91')
+      ? newPhoneInput.trim()
+      : `+91 ${digits.slice(-10)}`;
+
+    setIsSavingPhone(true);
+    try {
+      // 1. Update user profile in Firestore
+      const updatedUser = await authService.updateUserProfile(currentUser.id, {
+        phone: formattedPhone,
+        phoneNumber: formattedPhone,
+      });
+
+      onUpdateCurrentUserProfile?.(updatedUser);
+      setShowAddPhoneModal(false);
+
+      // 2. Share phone to the conversation
+      if (activeConv) {
+        const senderDisplayName = currentUser.displayName || (isSeller ? 'Landowner' : 'Direct Buyer');
+        const shareText = isSeller
+          ? `${senderDisplayName} (Landowner) shared direct contact number: ${formattedPhone}`
+          : `${senderDisplayName} shared contact number: ${formattedPhone}`;
+
+        await chatService.sendMessage(
+          activeConv.id,
+          currentUser.id,
+          senderDisplayName,
+          shareText,
+          'PHONE_NUMBER_SHARED',
+          'APPROVED',
+          {
+            phoneNumber: formattedPhone,
+            senderRole: isSeller ? 'SELLER' : 'BUYER',
+          }
+        );
+
+        const recipientId = isBuyer ? activeConv.sellerId : activeConv.buyerId;
+        await notificationService.addNotification({
+          userId: recipientId,
+          type: 'PHONE_SHARED',
+          title: `Direct Phone Number Shared by ${senderDisplayName}`,
+          message: `${senderDisplayName} shared direct contact number: ${formattedPhone}`,
+          propertyId: activeConv.propertyId,
+          conversationId: activeConv.id,
+        });
+      }
+    } catch (err: any) {
+      console.error('Error saving and sharing phone:', err);
+      setPhoneActionError(err?.message || 'Failed to update profile. Please try again.');
+    } finally {
+      setIsSavingPhone(false);
+    }
   };
 
   // Handle File Upload (Photos or Documents)
@@ -251,7 +433,7 @@ export const ChatModal: React.FC<ChatModalProps> = ({
       await chatService.sendMessage(
         activeConv.id,
         currentUser.id,
-        currentUser.displayName || (isBuyer ? 'Buyer' : 'Seller'),
+        currentUser.displayName || (isBuyer ? 'Buyer' : 'Landowner'),
         bodyToSend,
         messageType,
         undefined,
@@ -268,7 +450,7 @@ export const ChatModal: React.FC<ChatModalProps> = ({
       await notificationService.addNotification({
         userId: recipientId,
         type: 'MESSAGE',
-        title: `New message from ${currentUser.displayName || (isBuyer ? 'Buyer' : 'Owner')}`,
+        title: `New message from ${currentUser.displayName || (isBuyer ? 'Buyer' : 'Landowner')}`,
         message: notifSnippet,
         propertyId: activeConv.propertyId,
         conversationId: activeConv.id,
@@ -280,25 +462,23 @@ export const ChatModal: React.FC<ChatModalProps> = ({
     }
   };
 
-  // 1. Request Phone Number Action (Buyer)
+  // Buyer requests landowner phone number
   const handleRequestPhoneNumber = async () => {
     if (!activeConv || sending) return;
     setSending(true);
 
-    const targetSellerPhone = property?.sellerPhone || '+91 98480 54321';
-
     try {
+      const buyerName = currentUser.displayName || 'Direct Buyer';
       await chatService.sendMessage(
         activeConv.id,
         currentUser.id,
-        currentUser.displayName || 'Direct Buyer',
-        '📞 Has requested your direct contact phone number for discussion regarding this land.',
+        buyerName,
+        '📞 Has requested your direct contact phone number for discussion regarding this land parcel.',
         'PHONE_NUMBER_REQUEST',
         'PENDING',
         {
-          requestedNumber: targetSellerPhone,
-          requesterName: currentUser.displayName || 'Direct Buyer',
-          requesterPhone: currentUser.phone || '+91 98490 12345',
+          requesterName: buyerName,
+          requesterPhone: getActiveUserPhone() || undefined,
         }
       );
 
@@ -307,7 +487,7 @@ export const ChatModal: React.FC<ChatModalProps> = ({
         userId: activeConv.sellerId,
         type: 'PHONE_REQUEST',
         title: 'Phone Number Request Received',
-        message: `${currentUser.displayName || 'A buyer'} requested your direct contact number for ${activeConv.propertyTitle}.`,
+        message: `${buyerName} requested your direct contact number for ${activeConv.propertyTitle}.`,
         propertyId: activeConv.propertyId,
         conversationId: activeConv.id,
       });
@@ -318,57 +498,21 @@ export const ChatModal: React.FC<ChatModalProps> = ({
     }
   };
 
-  // Direct Share My Number Action (Available to both Buyer and Seller)
-  const handleDirectShareMyNumber = async () => {
-    if (!activeConv || sending) return;
-    setSending(true);
-
-    const myNumber = currentUser.phone || (isSeller ? '+91 98480 54321' : '+91 98490 12345');
-
-    try {
-      await chatService.sendMessage(
-        activeConv.id,
-        currentUser.id,
-        currentUser.displayName || (isSeller ? 'Landowner' : 'Direct Buyer'),
-        `✅ Direct Contact Phone Number Shared: ${myNumber}`,
-        'PHONE_NUMBER_SHARED',
-        'APPROVED',
-        {
-          phoneNumber: myNumber,
-          senderRole: isSeller ? 'SELLER' : 'BUYER',
-        }
-      );
-
-      const recipientId = isBuyer ? activeConv.sellerId : activeConv.buyerId;
-      await notificationService.addNotification({
-        userId: recipientId,
-        type: 'PHONE_SHARED',
-        title: `Direct Phone Number Shared by ${currentUser.displayName || (isSeller ? 'Landowner' : 'Buyer')}`,
-        message: `${currentUser.displayName || 'User'} shared direct contact number: ${myNumber}`,
-        propertyId: activeConv.propertyId,
-        conversationId: activeConv.id,
-      });
-    } catch (e) {
-      console.error('Error sharing phone number:', e);
-    } finally {
-      setSending(false);
-    }
-  };
-
-  // 2. Request Schedule Physical Site Visit Action (Buyer)
+  // Buyer requests site visit
   const handleConfirmSiteVisitRequest = async () => {
     if (!activeConv || sending) return;
     setSending(true);
     setShowVisitPicker(false);
 
     try {
+      const buyerName = currentUser.displayName || 'Buyer';
       const visitObj = await siteVisitService.requestSiteVisit({
         propertyId: activeConv.propertyId,
         propertyTitle: activeConv.propertyTitle,
         propertyLocation: activeConv.propertyLocation || 'Telangana',
         buyerId: currentUser.id,
-        buyerName: currentUser.displayName || 'Buyer',
-        buyerPhone: currentUser.phone || '+91 98490 12345',
+        buyerName,
+        buyerPhone: getActiveUserPhone() || '+91 Contact In Chat',
         sellerId: activeConv.sellerId,
         sellerName: activeConv.sellerName,
         date: visitDate,
@@ -379,7 +523,7 @@ export const ChatModal: React.FC<ChatModalProps> = ({
       await chatService.sendMessage(
         activeConv.id,
         currentUser.id,
-        currentUser.displayName || 'Buyer',
+        buyerName,
         `📅 Has requested a Physical Site Visit for ${visitDate} (${visitTimeSlot}).`,
         'SITE_VISIT_REQUEST',
         'PENDING',
@@ -395,7 +539,7 @@ export const ChatModal: React.FC<ChatModalProps> = ({
         userId: activeConv.sellerId,
         type: 'VISIT_REQUEST',
         title: 'New Site Visit Request',
-        message: `${currentUser.displayName || 'A buyer'} requested a physical site visit on ${visitDate} (${visitTimeSlot}).`,
+        message: `${buyerName} requested a physical site visit on ${visitDate} (${visitTimeSlot}).`,
         propertyId: activeConv.propertyId,
         conversationId: activeConv.id,
       });
@@ -406,31 +550,43 @@ export const ChatModal: React.FC<ChatModalProps> = ({
     }
   };
 
-  // 1-Click Instant Approve Phone Number (Seller)
-  const handleInstantApprovePhoneNumber = async (msgId: string, phoneToShare?: string) => {
+  // Seller approves phone request using their profile phone or opens prompt
+  const handleSellerApprovePhoneRequest = async (msgId: string) => {
+    const sellerPhone = getActiveUserPhone().trim();
+    if (sellerPhone && sellerPhone.replace(/\D/g, '').length >= 10) {
+      await handleInstantApprovePhoneNumber(msgId, sellerPhone);
+    } else {
+      setPhonePromptMsgId(msgId);
+      setCustomSellerPhoneInput('');
+    }
+  };
+
+  // Instant approve phone number with given number
+  const handleInstantApprovePhoneNumber = async (msgId: string, phoneToShare: string) => {
     if (!activeConv) return;
-    const finalPhone = (phoneToShare || currentUser.phone || property?.sellerPhone || '+91 98480 54321').trim();
+    const finalPhone = phoneToShare.trim();
 
     try {
       await chatService.updateMessageStatus(msgId, activeConv.id, 'APPROVED', {
         phoneNumber: finalPhone,
       });
 
+      const landownerName = currentUser.displayName || 'Landowner';
       await chatService.sendMessage(
         activeConv.id,
         currentUser.id,
-        currentUser.displayName || 'Landowner',
-        `✅ Direct Phone Number Shared: ${finalPhone}`,
+        landownerName,
+        `✅ Direct Landowner Phone Number Shared: ${finalPhone}`,
         'PHONE_NUMBER_SHARED',
         'APPROVED',
-        { phoneNumber: finalPhone }
+        { phoneNumber: finalPhone, senderRole: 'SELLER' }
       );
 
       await notificationService.addNotification({
         userId: activeConv.buyerId,
         type: 'PHONE_SHARED',
         title: 'Phone Number Approved by Landowner',
-        message: `${activeConv.sellerName || currentUser.displayName} approved your request and shared their phone number: ${finalPhone}`,
+        message: `${landownerName} approved your request and shared their phone number: ${finalPhone}`,
         propertyId: activeConv.propertyId,
         conversationId: activeConv.id,
       });
@@ -439,28 +595,33 @@ export const ChatModal: React.FC<ChatModalProps> = ({
     }
   };
 
-  // Seller Open Phone Prompt
-  const handleOpenPhonePrompt = (msgId: string) => {
-    const defaultNumber = currentUser.phone || property?.sellerPhone || '+91 98480 54321';
-    setPhoneNumberInput(defaultNumber);
-    setPhonePromptMsgId(msgId);
-    setPhoneShareError(null);
-  };
-
-  // Confirm and Send Custom Phone Number
-  const handleConfirmSendPhoneNumber = async () => {
+  // Confirm custom phone input for seller
+  const handleConfirmCustomSellerPhone = async () => {
     if (!activeConv || !phonePromptMsgId) return;
 
-    const trimmedPhone = phoneNumberInput.trim();
-    if (!trimmedPhone || trimmedPhone.length < 8) {
-      setPhoneShareError('Please enter a valid phone number (at least 8 digits).');
+    const digits = customSellerPhoneInput.replace(/\D/g, '');
+    if (digits.length < 10) {
+      setPhoneActionError('Please enter a valid 10-digit mobile number (+91).');
       return;
     }
+
+    const formatted = customSellerPhoneInput.trim().startsWith('+91')
+      ? customSellerPhoneInput.trim()
+      : `+91 ${digits.slice(-10)}`;
 
     const msgId = phonePromptMsgId;
     setPhonePromptMsgId(null);
 
-    await handleInstantApprovePhoneNumber(msgId, trimmedPhone);
+    // Save phone to seller's profile
+    try {
+      const updatedUser = await authService.updateUserProfile(currentUser.id, {
+        phone: formatted,
+        phoneNumber: formatted,
+      });
+      onUpdateCurrentUserProfile?.(updatedUser);
+    } catch (e) {}
+
+    await handleInstantApprovePhoneNumber(msgId, formatted);
   };
 
   // Seller Decline Phone Number
@@ -539,10 +700,13 @@ export const ChatModal: React.FC<ChatModalProps> = ({
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
+  const displayBuyerName = counterpartyName || activeConv?.buyerName || 'Buyer';
+  const displaySellerName = counterpartyName || activeConv?.sellerName || property?.sellerName || 'Landowner';
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in">
       <div className="bg-white rounded-3xl max-w-lg w-full h-[620px] max-h-[92vh] shadow-2xl border border-slate-200/80 flex flex-col overflow-hidden relative">
-        {/* Header with Land Info & Perspective */}
+        {/* Header with Land Info & Dynamic Account Identity */}
         <div className="bg-slate-900 text-white px-5 py-3.5 flex items-center justify-between shadow-xs">
           <div className="flex items-center space-x-3 min-w-0">
             <div className="w-10 h-10 rounded-2xl bg-indigo-600/30 border border-indigo-400/30 flex items-center justify-center text-indigo-400 font-bold shrink-0">
@@ -557,10 +721,10 @@ export const ChatModal: React.FC<ChatModalProps> = ({
                   {isSeller ? 'Landowner View' : 'Buyer View'}
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400 truncate mt-0.5">
+              <p className="text-[11px] text-slate-300 truncate mt-0.5">
                 {isSeller
-                  ? `Chatting with Prospective Buyer: ${activeConv?.buyerName || 'Buyer'}`
-                  : `Direct Chat with Landowner: ${activeConv?.sellerName || property?.sellerName || 'Venkata Reddy'}`}
+                  ? `Chatting with Prospective Buyer: ${displayBuyerName}`
+                  : `Direct Chat with Landowner: ${displaySellerName}`}
               </p>
             </div>
           </div>
@@ -573,18 +737,18 @@ export const ChatModal: React.FC<ChatModalProps> = ({
           </button>
         </div>
 
-        {/* 30-Day Auto Retention & Encrypted Status Bar */}
+        {/* Encrypted Status Bar */}
         <div className="bg-slate-100/90 border-b border-slate-200 px-4 py-1.5 flex items-center justify-between text-[10px] text-slate-600 font-medium">
           <span className="flex items-center space-x-1">
             <ShieldCheck className="w-3.5 h-3.5 text-indigo-600" />
-            <span>Direct Encrypted Chat</span>
+            <span>Direct Encrypted Chat • Verified Authenticated Users</span>
           </span>
           <span className="text-slate-500 font-mono">
-            🕒 Messages stored for 30 days
+            🕒 Active Session
           </span>
         </div>
 
-        {/* Top Direct Contact Sticky Bar (Always visible to Buyer & Seller when phone is known) */}
+        {/* Top Direct Contact Sticky Bar (Always visible when a contact phone has been shared) */}
         {activeContactPhone && (
           <div className="bg-emerald-50 border-b border-emerald-200/90 px-4 py-2 flex items-center justify-between gap-2 animate-in fade-in">
             <div className="flex items-center space-x-2 min-w-0">
@@ -593,7 +757,7 @@ export const ChatModal: React.FC<ChatModalProps> = ({
               </span>
               <div className="min-w-0">
                 <div className="text-[10px] font-bold text-emerald-900 uppercase tracking-wider">
-                  Direct Contact (Visible in Chat)
+                  Shared Contact Number
                 </div>
                 <div className="text-xs font-bold font-mono text-emerald-950 truncate">
                   {activeContactPhone}
@@ -647,6 +811,7 @@ export const ChatModal: React.FC<ChatModalProps> = ({
                 disabled={sending}
                 onClick={handleRequestPhoneNumber}
                 className="flex-1 py-1.5 px-2 bg-white hover:bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-xl text-[11px] font-bold flex items-center justify-center space-x-1.5 transition-colors shadow-2xs cursor-pointer"
+                title="Request landowner contact number"
               >
                 <Phone className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
                 <span className="truncate">Request Number</span>
@@ -655,7 +820,7 @@ export const ChatModal: React.FC<ChatModalProps> = ({
               <button
                 type="button"
                 disabled={sending}
-                onClick={handleDirectShareMyNumber}
+                onClick={handleInitiateSharePhone}
                 className="flex-1 py-1.5 px-2 bg-white hover:bg-indigo-50 text-slate-700 border border-slate-200 rounded-xl text-[11px] font-semibold flex items-center justify-center space-x-1.5 transition-colors shadow-2xs cursor-pointer"
                 title="Share your buyer contact number"
               >
@@ -678,11 +843,13 @@ export const ChatModal: React.FC<ChatModalProps> = ({
               <button
                 type="button"
                 disabled={sending}
-                onClick={handleDirectShareMyNumber}
+                onClick={handleInitiateSharePhone}
                 className="flex-1 py-1.5 px-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[11px] font-bold flex items-center justify-center space-x-1.5 transition-colors shadow-2xs cursor-pointer"
               >
                 <Phone className="w-3.5 h-3.5 shrink-0" />
-                <span className="truncate">Share Landowner Number ({currentUser.phone || '+91 98480 54321'})</span>
+                <span className="truncate">
+                  Share Landowner Number {getActiveUserPhone() ? `(${getActiveUserPhone()})` : ''}
+                </span>
               </button>
             </>
           )}
@@ -777,7 +944,7 @@ export const ChatModal: React.FC<ChatModalProps> = ({
                 const isApproved = msg.requestStatus === 'APPROVED';
                 const isDeclined = msg.requestStatus === 'DECLINED';
                 const isPending = !isApproved && !isDeclined;
-                const displayPhone = msg.metadata?.phoneNumber || msg.metadata?.requestedNumber || (isApproved ? property?.sellerPhone : null) || '+91 98480 54321';
+                const displayPhone = msg.metadata?.phoneNumber || msg.metadata?.requestedNumber || null;
 
                 return (
                   <div key={msg.id} className="w-full my-2">
@@ -807,7 +974,7 @@ export const ChatModal: React.FC<ChatModalProps> = ({
                           }`}
                         >
                           {isApproved
-                            ? 'Approved & Visible to Both'
+                            ? 'Approved & Visible'
                             : isDeclined
                             ? 'Declined'
                             : 'Pending Response'}
@@ -823,7 +990,7 @@ export const ChatModal: React.FC<ChatModalProps> = ({
                         <div className="pt-1.5 space-y-2">
                           <div className="p-2.5 bg-white/90 rounded-xl border border-indigo-200 flex items-center justify-between">
                             <span className="text-[11px] text-slate-700 font-semibold">
-                              Buyer is requesting your phone number:
+                              Buyer is requesting your direct phone number:
                             </span>
                             <span className="text-[10px] text-indigo-600 font-bold bg-indigo-50 px-2 py-0.5 rounded-md">
                               Action Required
@@ -833,18 +1000,11 @@ export const ChatModal: React.FC<ChatModalProps> = ({
                           <div className="flex flex-wrap items-center gap-2">
                             <button
                               type="button"
-                              onClick={() => handleInstantApprovePhoneNumber(msg.id, currentUser.phone || property?.sellerPhone || '+91 98480 54321')}
+                              onClick={() => handleSellerApprovePhoneRequest(msg.id)}
                               className="flex-1 py-2 px-3 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white rounded-xl text-xs font-bold shadow-xs transition-all flex items-center justify-center space-x-1.5 cursor-pointer"
                             >
                               <CheckCircle2 className="w-3.5 h-3.5" />
-                              <span>Share My Number ({currentUser.phone || property?.sellerPhone || '+91 98480 54321'})</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleOpenPhonePrompt(msg.id)}
-                              className="py-2 px-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-xs font-semibold border border-indigo-200 cursor-pointer transition-colors"
-                            >
-                              Custom Number
+                              <span>Share My Number {getActiveUserPhone() ? `(${getActiveUserPhone()})` : ''}</span>
                             </button>
                             <button
                               type="button"
@@ -864,11 +1024,6 @@ export const ChatModal: React.FC<ChatModalProps> = ({
                             <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
                             <span>Request sent to landowner. Waiting for contact approval...</span>
                           </div>
-                          {msg.metadata?.requestedNumber && (
-                            <p className="text-[11px] text-slate-500 pl-5">
-                              Target contact number: <span className="font-mono font-bold text-slate-700">{msg.metadata.requestedNumber}</span>
-                            </p>
-                          )}
                         </div>
                       )}
 
@@ -930,8 +1085,8 @@ export const ChatModal: React.FC<ChatModalProps> = ({
 
               // 1.5. Phone Number Shared Card (VISIBLE IN BOTH CHATS)
               if (msg.messageType === 'PHONE_NUMBER_SHARED') {
-                const phoneVal = msg.metadata?.phoneNumber || msg.body?.replace(/^.*:\s*/, '') || '+91 98480 54321';
-                const roleTag = msg.metadata?.senderRole === 'BUYER' ? 'Buyer Contact Number' : 'Direct Landowner Number';
+                const phoneVal = msg.metadata?.phoneNumber || msg.body?.replace(/^.*:\s*/, '');
+                const roleTag = msg.metadata?.senderRole === 'BUYER' ? 'Buyer Contact' : 'Landowner Contact';
 
                 return (
                   <div key={msg.id} className="w-full my-2">
@@ -939,10 +1094,10 @@ export const ChatModal: React.FC<ChatModalProps> = ({
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-emerald-950 flex items-center space-x-1.5">
                           <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                          <span>Direct Phone Number Shared ({roleTag})</span>
+                          <span>Direct Contact Number Shared ({roleTag})</span>
                         </span>
                         <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
-                          Active & Visible in Both Chats
+                          Active & Visible in Chat
                         </span>
                       </div>
 
@@ -1205,7 +1360,7 @@ export const ChatModal: React.FC<ChatModalProps> = ({
             type="text"
             value={inputBody}
             onChange={(e) => setInputBody(e.target.value)}
-            placeholder="Type message to landowner / buyer..."
+            placeholder={isSeller ? "Type message to prospective buyer..." : "Type message to landowner..."}
             className="flex-1 px-3 py-2 text-xs bg-slate-100/80 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-600 focus:outline-hidden"
           />
 
@@ -1218,37 +1373,162 @@ export const ChatModal: React.FC<ChatModalProps> = ({
           </button>
         </form>
 
-        {/* Seller Phone Input Modal */}
-        {phonePromptMsgId && (
-          <div className="absolute inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
-            <div className="bg-white rounded-2xl p-5 max-w-sm w-full shadow-2xl border border-slate-200 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-900 flex items-center space-x-1.5">
-                  <Phone className="w-4 h-4 text-emerald-600" />
-                  <span>Share Your Direct Phone Number</span>
-                </span>
+        {/* 1. Share Phone Confirmation Dialog (when user already has a phone in their profile) */}
+        {showShareConfirmModal && (
+          <div className="absolute inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
+            <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-200 space-y-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold shrink-0">
+                  <Phone className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-slate-900">Share Contact Number?</h4>
+                  <p className="text-xs text-slate-500">
+                    With {isSeller ? `buyer (${displayBuyerName})` : `landowner (${displaySellerName})`}
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-3.5 bg-emerald-50 rounded-2xl border border-emerald-200 space-y-1">
+                <p className="text-[11px] font-bold text-emerald-800">Your profile contact number:</p>
+                <p className="text-base font-black font-mono text-emerald-950">
+                  {getActiveUserPhone()}
+                </p>
+                <p className="text-[10px] text-emerald-700">
+                  This will enable direct telephone calls and WhatsApp coordination for site verification.
+                </p>
+              </div>
+
+              <div className="flex space-x-2 pt-1">
                 <button
                   type="button"
-                  onClick={() => setPhonePromptMsgId(null)}
-                  className="text-slate-400 hover:text-slate-700"
+                  onClick={() => setShowShareConfirmModal(false)}
+                  className="flex-1 py-2.5 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={sending}
+                  onClick={handleConfirmShareExistingPhone}
+                  className="flex-1 py-2.5 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-xs transition-colors cursor-pointer flex items-center justify-center space-x-1.5"
+                >
+                  {sending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+                  <span>Share Number</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 2. Add Phone Prompt Modal (when user does NOT have phone in profile) */}
+        {showAddPhoneModal && (
+          <div className="absolute inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
+            <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-200 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-2xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold shrink-0">
+                    <Phone className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-900">Add Phone Number</h4>
+                    <p className="text-xs text-slate-500">Save to your profile and share</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowAddPhoneModal(false)}
+                  className="p-1 rounded-lg text-slate-400 hover:text-slate-700"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
 
-              <p className="text-[11px] text-slate-600">
-                This verified phone number will be displayed in both buyer and seller chats for direct voice calls & WhatsApp.
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Add your 10-digit mobile number to your profile before sharing your contact details with this {isSeller ? 'buyer' : 'seller'}.
               </p>
 
-              {phoneShareError && (
-                <p className="text-[11px] text-rose-600 font-medium">{phoneShareError}</p>
+              {phoneActionError && (
+                <div className="p-2.5 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs flex items-center space-x-1.5">
+                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                  <span>{phoneActionError}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleSaveAndShareNewPhone} className="space-y-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Your Mobile / WhatsApp Number (+91)
+                  </label>
+                  <div className="relative">
+                    <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                    <input
+                      type="tel"
+                      required
+                      placeholder="+91 98480 12345"
+                      value={newPhoneInput}
+                      onChange={(e) => setNewPhoneInput(e.target.value)}
+                      className="w-full pl-9 pr-3 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-600 focus:outline-hidden font-mono"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex space-x-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddPhoneModal(false)}
+                    className="flex-1 py-2.5 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSavingPhone}
+                    className="flex-1 py-2.5 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-xs transition-colors cursor-pointer flex items-center justify-center space-x-1.5"
+                  >
+                    {isSavingPhone ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <span>Save & Share</span>}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* 3. Seller Custom Phone Input Modal */}
+        {phonePromptMsgId && (
+          <div className="absolute inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
+            <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-200 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold shrink-0">
+                    <Phone className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-900">Enter Your Landowner Phone</h4>
+                    <p className="text-xs text-slate-500">To share with {displayBuyerName}</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setPhonePromptMsgId(null)}
+                  className="p-1 rounded-lg text-slate-400 hover:text-slate-700"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {phoneActionError && (
+                <div className="p-2.5 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs flex items-center space-x-1.5">
+                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                  <span>{phoneActionError}</span>
+                </div>
               )}
 
               <div>
                 <input
                   type="tel"
-                  value={phoneNumberInput}
-                  onChange={(e) => setPhoneNumberInput(e.target.value)}
+                  value={customSellerPhoneInput}
+                  onChange={(e) => setCustomSellerPhoneInput(e.target.value)}
                   placeholder="+91 98480 12345"
                   className="w-full p-2.5 text-xs border border-slate-300 rounded-xl font-mono text-slate-900 focus:ring-2 focus:ring-emerald-600 focus:outline-hidden"
                 />
@@ -1264,10 +1544,10 @@ export const ChatModal: React.FC<ChatModalProps> = ({
                 </button>
                 <button
                   type="button"
-                  onClick={handleConfirmSendPhoneNumber}
+                  onClick={handleConfirmCustomSellerPhone}
                   className="flex-1 py-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-xs"
                 >
-                  Send & Share
+                  Confirm & Share
                 </button>
               </div>
             </div>

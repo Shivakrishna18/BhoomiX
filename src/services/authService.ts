@@ -358,6 +358,32 @@ export const authService = {
     return updated;
   },
 
+  // Fetch user profile by UID directly from Firestore
+  async getUserProfileById(userId: string): Promise<UserProfile | null> {
+    if (!userId) return null;
+    try {
+      const snap = await getDoc(doc(db, 'users', userId));
+      if (snap.exists()) {
+        const data = snap.data();
+        return {
+          id: snap.id,
+          userId: snap.id,
+          firstName: data.firstName || '',
+          lastName: data.lastName || '',
+          displayName: data.displayName || `${data.firstName || ''} ${data.lastName || ''}`.trim() || 'User',
+          email: data.email || '',
+          phone: data.phone || data.phoneNumber || undefined,
+          phoneNumber: data.phoneNumber || data.phone || undefined,
+          role: data.role || 'BUYER',
+          ...data,
+        } as UserProfile;
+      }
+    } catch (e) {
+      console.warn('Error fetching user profile by ID:', e);
+    }
+    return null;
+  },
+
   // Set / Switch to a specific persona (for Judge Mode or testing)
   async setDemoUser(persona: UserProfile): Promise<UserProfile> {
     // Ensure persona exists in Firestore so queries/chats work seamlessly
