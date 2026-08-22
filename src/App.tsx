@@ -345,7 +345,15 @@ export default function App() {
     : [];
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-100 font-sans text-slate-900 antialiased selection:bg-indigo-200 selection:text-indigo-900">
+    <div className="min-h-screen flex flex-col bg-transparent font-sans text-slate-900 antialiased selection:bg-indigo-200 selection:text-indigo-900 relative">
+      {/* Ambient Atmospheric Light Drift */}
+      <div className="liquid-ambient-bg">
+        <div className="liquid-orb w-[650px] h-[650px] bg-indigo-500/10 -top-32 -left-32" />
+        <div className="liquid-orb w-[550px] h-[550px] bg-cyan-400/10 top-1/3 -right-32 [animation-delay:-7s]" />
+        <div className="liquid-orb w-[600px] h-[600px] bg-emerald-400/8 bottom-10 left-1/4 [animation-delay:-12s]" />
+        <div className="liquid-orb w-[500px] h-[500px] bg-purple-500/8 top-2/3 right-1/4 [animation-delay:-16s]" />
+      </div>
+
       {/* Navigation Bar */}
       <Navbar
         currentUser={currentUser}

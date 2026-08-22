@@ -470,19 +470,19 @@ export const CreateListingWizard: React.FC<CreateListingWizardProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in">
-      <div className="bg-white rounded-3xl max-w-3xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-in fade-in">
+      <div className="liquid-glass-card bg-white/95 backdrop-blur-2xl rounded-3xl max-w-3xl w-full max-h-[92vh] flex flex-col shadow-[0_25px_70px_rgba(15,23,42,0.3)] border border-white/90 overflow-hidden relative">
         {/* Wizard Header */}
-        <div className="bg-slate-900 text-white px-6 py-4 flex items-center justify-between shrink-0">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center font-bold text-sm shadow-xs">
+        <div className="liquid-glass-dark text-white px-6 py-4.5 flex items-center justify-between shrink-0 border-b border-slate-800">
+          <div className="flex items-center space-x-3.5">
+            <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center font-bold text-sm shadow-md shadow-indigo-600/40">
               {step}
             </div>
             <div>
-              <h3 className="text-base font-bold tracking-tight">
+              <h3 className="text-base font-extrabold tracking-tight text-white">
                 {step === 1 ? 'List Your Land Parcel' : 'Document Verification & Trust'}
               </h3>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-300">
                 {step === 1
                   ? 'Step 1 of 2: Owner details, specs, Indian Rupee price & media'
                   : 'Step 2 of 2: Upload real Dharani passbook / revenue records'}
@@ -492,14 +492,14 @@ export const CreateListingWizard: React.FC<CreateListingWizardProps> = ({
 
           <div className="flex items-center space-x-3">
             {draftSavedTimestamp && (
-              <span className="hidden sm:inline-flex items-center space-x-1 text-[11px] text-emerald-400 font-medium">
+              <span className="hidden sm:inline-flex items-center space-x-1 text-[11px] text-emerald-400 font-medium bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
                 <Check className="w-3 h-3" />
                 <span>Draft Saved {draftSavedTimestamp}</span>
               </span>
             )}
             <button
               onClick={onClose}
-              className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+              className="p-2 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors spring-press cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -507,7 +507,7 @@ export const CreateListingWizard: React.FC<CreateListingWizardProps> = ({
         </div>
 
         {validationError && (
-          <div className="mx-6 mt-4 p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs flex items-center space-x-2 shrink-0">
+          <div className="mx-6 mt-4 p-3.5 bg-rose-50/90 border border-rose-200 text-rose-800 rounded-2xl text-xs flex items-center space-x-2.5 shrink-0 shadow-xs">
             <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
             <span>{validationError}</span>
           </div>
@@ -518,7 +518,7 @@ export const CreateListingWizard: React.FC<CreateListingWizardProps> = ({
           <div className="flex-1 p-6 overflow-y-auto space-y-6">
             {/* 1. Seller & Pattadar Identity */}
             <div className="space-y-4">
-              <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2 flex items-center space-x-1.5">
+              <h4 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2 flex items-center space-x-2">
                 <User className="w-4 h-4 text-indigo-600" />
                 <span>1. Land Owner & Contact Information</span>
               </h4>
@@ -534,7 +534,7 @@ export const CreateListingWizard: React.FC<CreateListingWizardProps> = ({
                     placeholder="e.g. Venkata Reddy"
                     value={ownerName}
                     onChange={(e) => setOwnerName(e.target.value)}
-                    className="w-full p-2.5 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-600 focus:outline-hidden font-medium"
+                    className="w-full p-2.5 text-xs border border-slate-200 bg-white/80 rounded-xl focus:ring-2 focus:ring-indigo-600 focus:outline-hidden font-medium"
                   />
                   <p className="text-[10px] text-slate-500 mt-1">Displayed to buyers as verified Pattadar</p>
                 </div>
@@ -548,7 +548,7 @@ export const CreateListingWizard: React.FC<CreateListingWizardProps> = ({
                     placeholder="owner@gmail.com"
                     value={sellerEmail}
                     onChange={(e) => setSellerEmail(e.target.value)}
-                    className="w-full p-2.5 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-600 focus:outline-hidden"
+                    className="w-full p-2.5 text-xs border border-slate-200 bg-white/80 rounded-xl focus:ring-2 focus:ring-indigo-600 focus:outline-hidden"
                   />
                   <p className="text-[10px] text-slate-500 mt-1">For direct inquiries & notifications</p>
                 </div>
@@ -562,7 +562,7 @@ export const CreateListingWizard: React.FC<CreateListingWizardProps> = ({
                     placeholder="+91 98480 00000"
                     value={sellerPhone}
                     onChange={(e) => setSellerPhone(e.target.value)}
-                    className="w-full p-2.5 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-600 focus:outline-hidden"
+                    className="w-full p-2.5 text-xs border border-slate-200 bg-white/80 rounded-xl focus:ring-2 focus:ring-indigo-600 focus:outline-hidden"
                   />
                   <p className="text-[10px] text-slate-500 mt-1">Protected; shared upon direct chat request</p>
                 </div>
@@ -571,7 +571,7 @@ export const CreateListingWizard: React.FC<CreateListingWizardProps> = ({
 
             {/* 2. Land Location & Specifications */}
             <div className="space-y-4 pt-2">
-              <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2">
+              <h4 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2">
                 2. Land Location & Extent
               </h4>
 
@@ -600,7 +600,7 @@ export const CreateListingWizard: React.FC<CreateListingWizardProps> = ({
                     placeholder="e.g. Maheshwaram / Hardware Park"
                     value={locality}
                     onChange={(e) => setLocality(e.target.value)}
-                    className="w-full p-2.5 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-600 focus:outline-hidden"
+                    className="w-full p-2.5 text-xs border border-slate-200 bg-white/80 rounded-xl focus:ring-2 focus:ring-indigo-600 focus:outline-hidden"
                   />
                 </div>
               </div>
@@ -616,7 +616,7 @@ export const CreateListingWizard: React.FC<CreateListingWizardProps> = ({
                     placeholder="e.g. Sy. No. 142/A & 142/B"
                     value={surveyNumber}
                     onChange={(e) => setSurveyNumber(e.target.value)}
-                    className="w-full p-2.5 text-xs border border-slate-200 rounded-xl font-mono focus:ring-2 focus:ring-indigo-600 focus:outline-hidden"
+                    className="w-full p-2.5 text-xs border border-slate-200 bg-white/80 rounded-xl font-mono focus:ring-2 focus:ring-indigo-600 focus:outline-hidden"
                   />
                 </div>
 
@@ -629,7 +629,7 @@ export const CreateListingWizard: React.FC<CreateListingWizardProps> = ({
                     required
                     value={landSize}
                     onChange={(e) => setLandSize(parseFloat(e.target.value) || 1)}
-                    className="w-full p-2.5 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-600 focus:outline-hidden font-medium"
+                    className="w-full p-2.5 text-xs border border-slate-200 bg-white/80 rounded-xl focus:ring-2 focus:ring-indigo-600 focus:outline-hidden font-medium"
                   />
                 </div>
 
@@ -670,7 +670,7 @@ export const CreateListingWizard: React.FC<CreateListingWizardProps> = ({
                     placeholder="e.g. 40 Feet Wide Blacktop Road"
                     value={roadFacing}
                     onChange={(e) => setRoadFacing(e.target.value)}
-                    className="w-full p-2.5 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-600 focus:outline-hidden"
+                    className="w-full p-2.5 text-xs border border-slate-200 bg-white/80 rounded-xl focus:ring-2 focus:ring-indigo-600 focus:outline-hidden"
                   />
                 </div>
               </div>
@@ -679,18 +679,18 @@ export const CreateListingWizard: React.FC<CreateListingWizardProps> = ({
             {/* 3. Comprehensive Indian Rupee (INR) Pricing System */}
             <div className="space-y-4 pt-2">
               <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center space-x-1.5">
+                <h4 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider flex items-center space-x-1.5">
                   <IndianRupee className="w-4 h-4 text-indigo-600" />
                   <span>3. Direct Asking Price (Indian Rupees)</span>
                 </h4>
 
                 {/* Price Input Unit Switcher */}
-                <div className="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200 text-xs font-bold">
+                <div className="flex items-center bg-slate-200/60 p-1 rounded-full border border-slate-200/80 text-xs font-bold backdrop-blur-md">
                   <button
                     type="button"
                     onClick={() => handleModeChange('CRORES')}
-                    className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
-                      priceInputMode === 'CRORES' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                    className={`px-3 py-1 rounded-full transition-all spring-press cursor-pointer ${
+                      priceInputMode === 'CRORES' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'
                     }`}
                   >
                     Crores (Cr)
@@ -698,8 +698,8 @@ export const CreateListingWizard: React.FC<CreateListingWizardProps> = ({
                   <button
                     type="button"
                     onClick={() => handleModeChange('LAKHS')}
-                    className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
-                      priceInputMode === 'LAKHS' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                    className={`px-3 py-1 rounded-full transition-all spring-press cursor-pointer ${
+                      priceInputMode === 'LAKHS' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'
                     }`}
                   >
                     Lakhs (L)
@@ -707,8 +707,8 @@ export const CreateListingWizard: React.FC<CreateListingWizardProps> = ({
                   <button
                     type="button"
                     onClick={() => handleModeChange('TOTAL_INR')}
-                    className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
-                      priceInputMode === 'TOTAL_INR' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                    className={`px-3 py-1 rounded-full transition-all spring-press cursor-pointer ${
+                      priceInputMode === 'TOTAL_INR' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'
                     }`}
                   >
                     Full INR (₹)
@@ -724,7 +724,7 @@ export const CreateListingWizard: React.FC<CreateListingWizardProps> = ({
                     {priceInputMode === 'TOTAL_INR' && 'Exact Asking Price in INR (e.g. 12500000)'}
                   </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-2.5 text-slate-400 font-bold text-xs">₹</span>
+                    <span className="absolute left-3.5 top-2.5 text-slate-400 font-bold text-xs">₹</span>
                     <input
                       type="number"
                       step={priceInputMode === 'CRORES' ? '0.01' : priceInputMode === 'LAKHS' ? '0.5' : '1000'}
@@ -733,23 +733,23 @@ export const CreateListingWizard: React.FC<CreateListingWizardProps> = ({
                       placeholder={priceInputMode === 'CRORES' ? '3.50' : priceInputMode === 'LAKHS' ? '85' : '35000000'}
                       value={rawPriceInput}
                       onChange={(e) => updatePriceValues(e.target.value, priceInputMode)}
-                      className="w-full pl-7 pr-3 py-2.5 text-sm font-mono font-bold text-indigo-950 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-600 focus:outline-hidden"
+                      className="w-full pl-8 pr-3 py-2.5 text-sm font-mono font-bold text-indigo-950 border border-slate-200 bg-white/80 rounded-xl focus:ring-2 focus:ring-indigo-600 focus:outline-hidden"
                     />
                   </div>
                 </div>
 
                 {/* Live Indian Numbering Preview Card */}
-                <div className="p-3 bg-indigo-50/70 border border-indigo-200/80 rounded-2xl space-y-1 text-xs">
-                  <span className="text-[10px] font-bold text-indigo-900 uppercase tracking-wider">
+                <div className="p-4 liquid-glass-card bg-indigo-50/70 border border-indigo-200/80 rounded-2xl space-y-1 text-xs shadow-xs">
+                  <span className="text-[10px] font-extrabold text-indigo-900 uppercase tracking-wider">
                     Calculated Display Price
                   </span>
-                  <p className="text-base font-extrabold text-indigo-950 font-mono">
+                  <p className="text-lg font-extrabold text-indigo-950 font-mono tracking-tight">
                     {formatINR(canonicalPriceINR, { showUnit: true, compact: false })}
                   </p>
                   <p className="text-[11px] text-slate-600 font-medium">
                     {getINRSpokenSummary(canonicalPriceINR)}
                   </p>
-                  <p className="text-[10px] text-indigo-700 font-semibold pt-1 border-t border-indigo-100">
+                  <p className="text-[10px] text-indigo-700 font-bold pt-1.5 border-t border-indigo-100">
                     ≈ {formatINR(Math.round(canonicalPriceINR / (landSize || 1)))} / {landUnit.replace('_', ' ')}
                   </p>
                 </div>
@@ -762,14 +762,14 @@ export const CreateListingWizard: React.FC<CreateListingWizardProps> = ({
                   placeholder="Describe road connectivity, boundary stones, irrigation, borewell status, and clear title..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full p-2.5 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-600 focus:outline-hidden"
+                  className="w-full p-2.5 text-xs border border-slate-200 bg-white/80 rounded-xl focus:ring-2 focus:ring-indigo-600 focus:outline-hidden"
                 />
               </div>
             </div>
 
             {/* 4. Media Upload: Photos & Optional Video */}
             <div className="space-y-4 pt-2">
-              <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2 flex items-center justify-between">
+              <h4 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2 flex items-center justify-between">
                 <span>4. Media Upload (Photos & Video)</span>
                 <span className="text-[11px] text-slate-400 font-normal">Supports Phone, Tablet & PC</span>
               </h4>
@@ -792,9 +792,9 @@ export const CreateListingWizard: React.FC<CreateListingWizardProps> = ({
 
                 <div
                   onClick={() => photoFileInputRef.current?.click()}
-                  className="border-2 border-dashed border-indigo-200 hover:border-indigo-500 bg-indigo-50/40 hover:bg-indigo-50/80 p-4 rounded-2xl flex flex-col items-center justify-center text-center cursor-pointer transition-all group"
+                  className="border-2 border-dashed border-indigo-200/80 hover:border-indigo-500 bg-indigo-50/30 hover:bg-indigo-50/70 p-5 rounded-3xl flex flex-col items-center justify-center text-center cursor-pointer transition-all group backdrop-blur-xs"
                 >
-                  <div className="w-9 h-9 rounded-xl bg-white border border-indigo-100 flex items-center justify-center text-indigo-600 shadow-xs mb-1.5 group-hover:scale-110 transition-transform">
+                  <div className="w-10 h-10 rounded-2xl bg-white border border-indigo-100 flex items-center justify-center text-indigo-600 shadow-sm mb-2 group-hover:scale-110 transition-transform">
                     {compressing ? <Loader2 className="w-5 h-5 animate-spin text-indigo-600" /> : <Upload className="w-5 h-5" />}
                   </div>
                   <p className="text-xs font-bold text-slate-900">
@@ -805,21 +805,21 @@ export const CreateListingWizard: React.FC<CreateListingWizardProps> = ({
 
                 {/* Photos Grid */}
                 {photosList.length > 0 && (
-                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 pt-1">
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5 pt-1">
                     {photosList.map((photoUrl, idx) => (
                       <div
                         key={idx}
-                        className={`relative rounded-xl overflow-hidden border-2 group bg-slate-100 h-20 ${
+                        className={`relative rounded-2xl overflow-hidden border-2 group bg-slate-100 h-20 shadow-xs ${
                           coverPhotoIndex === idx ? 'border-indigo-600 ring-2 ring-indigo-600/30' : 'border-slate-200'
                         }`}
                       >
                         <img src={photoUrl} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                         {coverPhotoIndex === idx && (
-                          <span className="absolute top-1 left-1 px-1.5 py-0.5 bg-indigo-600 text-white font-bold text-[8px] rounded-md shadow-xs">
+                          <span className="absolute top-1 left-1 px-1.5 py-0.5 bg-indigo-600 text-white font-bold text-[8px] rounded-full shadow-xs">
                             Cover
                           </span>
                         )}
-                        <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center space-x-1.5">
+                        <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center space-x-1.5 backdrop-blur-2xs">
                           {coverPhotoIndex !== idx && (
                             <button
                               type="button"
@@ -827,7 +827,7 @@ export const CreateListingWizard: React.FC<CreateListingWizardProps> = ({
                                 e.stopPropagation();
                                 setCoverPhotoIndex(idx);
                               }}
-                              className="px-1.5 py-0.5 bg-white text-indigo-900 font-bold text-[9px] rounded-md cursor-pointer"
+                              className="px-2 py-0.5 bg-white text-indigo-900 font-bold text-[9px] rounded-full cursor-pointer spring-press"
                             >
                               Cover
                             </button>
@@ -841,7 +841,7 @@ export const CreateListingWizard: React.FC<CreateListingWizardProps> = ({
                                 setCoverPhotoIndex(coverPhotoIndex - 1);
                               }
                             }}
-                            className="p-1 bg-rose-600 text-white rounded-md cursor-pointer"
+                            className="p-1.5 bg-rose-600 text-white rounded-full cursor-pointer spring-press"
                           >
                             <Trash2 className="w-3 h-3" />
                           </button>
@@ -870,16 +870,16 @@ export const CreateListingWizard: React.FC<CreateListingWizardProps> = ({
                 {!localVideoUrl ? (
                   <div
                     onClick={() => videoFileInputRef.current?.click()}
-                    className="border-2 border-dashed border-slate-200 hover:border-indigo-400 bg-slate-50 hover:bg-indigo-50/30 p-4 rounded-2xl flex flex-col items-center justify-center text-center cursor-pointer transition-all"
+                    className="border-2 border-dashed border-slate-200 hover:border-indigo-400 bg-slate-50/50 hover:bg-indigo-50/30 p-5 rounded-3xl flex flex-col items-center justify-center text-center cursor-pointer transition-all"
                   >
-                    <div className="w-8 h-8 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-600 shadow-xs mb-1">
+                    <div className="w-9 h-9 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-slate-600 shadow-xs mb-1.5">
                       <Play className="w-4 h-4 text-indigo-600" />
                     </div>
                     <p className="text-xs font-bold text-slate-800">Upload Property Video (Optional)</p>
                     <p className="text-[11px] text-slate-500">Supports MP4, WebM, MOV (Max 80MB)</p>
                   </div>
                 ) : (
-                  <div className="p-3 bg-slate-900 rounded-2xl text-white space-y-2">
+                  <div className="p-4 liquid-glass-dark rounded-3xl text-white space-y-2.5 border border-slate-800 shadow-sm">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
                         <Play className="w-4 h-4 text-emerald-400" />
@@ -893,7 +893,7 @@ export const CreateListingWizard: React.FC<CreateListingWizardProps> = ({
                           setLocalVideoUrl('');
                           setLocalVideoFileName('');
                         }}
-                        className="text-xs text-rose-400 hover:text-rose-300 font-bold flex items-center space-x-1 cursor-pointer"
+                        className="text-xs text-rose-400 hover:text-rose-300 font-bold flex items-center space-x-1 spring-press cursor-pointer"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                         <span>Remove</span>
@@ -902,7 +902,7 @@ export const CreateListingWizard: React.FC<CreateListingWizardProps> = ({
                     <video
                       controls
                       src={localVideoUrl}
-                      className="max-h-48 w-full rounded-xl object-cover bg-black"
+                      className="max-h-48 w-full rounded-2xl object-cover bg-black shadow-inner"
                     />
                   </div>
                 )}
@@ -914,14 +914,14 @@ export const CreateListingWizard: React.FC<CreateListingWizardProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="py-3 px-4 text-xs font-semibold border border-slate-200 rounded-xl hover:bg-slate-50 text-slate-700 transition-colors cursor-pointer"
+                className="py-3 px-5 text-xs font-bold border border-slate-200 bg-white/80 rounded-full hover:bg-white text-slate-700 transition-colors spring-press cursor-pointer"
               >
                 Close
               </button>
               <button
                 type="button"
                 onClick={handleValidateStep1}
-                className="flex-1 py-3 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-xs transition-colors flex items-center justify-center space-x-2 cursor-pointer"
+                className="flex-1 py-3 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-lg shadow-indigo-600/30 transition-all spring-press flex items-center justify-center space-x-2 cursor-pointer"
               >
                 <span>Proceed to Document Verification</span>
                 <ArrowRight className="w-4 h-4" />
@@ -934,12 +934,12 @@ export const CreateListingWizard: React.FC<CreateListingWizardProps> = ({
         {step === 2 && (
           <div className="flex-1 p-6 overflow-y-auto space-y-6">
             {/* Step 2 Information */}
-            <div className="bg-indigo-50 border border-indigo-200/80 rounded-2xl p-4 flex items-start space-x-3">
-              <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-xs">
-                <ShieldCheck className="w-4 h-4" />
+            <div className="liquid-glass-card bg-indigo-50/70 border border-indigo-200/80 rounded-3xl p-5 flex items-start space-x-3.5 shadow-xs">
+              <div className="w-9 h-9 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-indigo-600/30">
+                <ShieldCheck className="w-5 h-5" />
               </div>
               <div className="text-xs">
-                <h4 className="font-bold text-indigo-950">Real Land Document Verification</h4>
+                <h4 className="font-extrabold text-indigo-950 text-sm">Real Land Document Verification</h4>
                 <p className="text-indigo-800 text-[11px] mt-0.5 leading-relaxed">
                   Upload your revenue document (Dharani E-Passbook, 1B ROR, Pahani, or Survey Sketch). Our automated system extracts the survey extent and title details to display verified confidence on your listing.
                 </p>
@@ -979,9 +979,9 @@ export const CreateListingWizard: React.FC<CreateListingWizardProps> = ({
 
               <div
                 onClick={() => docFileInputRef.current?.click()}
-                className="border-2 border-dashed border-emerald-300 hover:border-emerald-500 bg-emerald-50/40 hover:bg-emerald-50/80 p-6 rounded-2xl flex flex-col items-center justify-center text-center cursor-pointer transition-all group"
+                className="border-2 border-dashed border-emerald-300 hover:border-emerald-500 bg-emerald-50/40 hover:bg-emerald-50/80 p-6 rounded-3xl flex flex-col items-center justify-center text-center cursor-pointer transition-all group backdrop-blur-xs"
               >
-                <div className="w-12 h-12 rounded-2xl bg-white border border-emerald-200 flex items-center justify-center text-emerald-600 shadow-xs mb-2 group-hover:scale-110 transition-transform">
+                <div className="w-12 h-12 rounded-2xl bg-white border border-emerald-200 flex items-center justify-center text-emerald-600 shadow-sm mb-2 group-hover:scale-110 transition-transform">
                   <FileCheck className="w-6 h-6" />
                 </div>
                 <p className="text-xs font-bold text-slate-900">
@@ -995,39 +995,39 @@ export const CreateListingWizard: React.FC<CreateListingWizardProps> = ({
 
             {/* Verification Processing Status or Result */}
             {isVerifyingDoc && (
-              <div className="p-4 bg-slate-900 rounded-2xl text-white flex items-center space-x-3">
+              <div className="p-4 liquid-glass-dark rounded-2xl text-white flex items-center space-x-3 border border-slate-800">
                 <Loader2 className="w-5 h-5 text-indigo-400 animate-spin shrink-0" />
                 <div className="text-xs">
                   <p className="font-bold">Analyzing Revenue Document Records...</p>
-                  <p className="text-slate-400 text-[11px]">Validating Survey No. {surveyNumber} against declared specifications.</p>
+                  <p className="text-slate-300 text-[11px]">Validating Survey No. {surveyNumber} against declared specifications.</p>
                 </div>
               </div>
             )}
 
             {uploadedDocName && !isVerifyingDoc && (
-              <div className="bg-slate-900 text-white rounded-3xl p-5 border border-slate-800 space-y-4">
+              <div className="liquid-glass-dark text-white rounded-3xl p-5 border border-slate-800 space-y-4 shadow-md">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center space-x-1.5">
+                  <span className="text-xs font-extrabold text-slate-200 uppercase tracking-wider flex items-center space-x-1.5">
                     <ShieldCheck className="w-4 h-4 text-emerald-400" />
                     <span>Document Analysis Summary</span>
                   </span>
-                  <span className="text-[11px] text-emerald-400 font-bold bg-emerald-500/20 px-2.5 py-1 rounded-full border border-emerald-500/30">
+                  <span className="text-[11px] text-emerald-400 font-bold bg-emerald-500/20 px-3 py-1 rounded-full border border-emerald-500/30">
                     {trustScore}% Trust Score
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px]">
-                  <div className="p-2.5 bg-slate-800/80 rounded-xl border border-slate-700/80 flex items-center space-x-2">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-[11px]">
+                  <div className="p-3 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 flex items-center space-x-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span className="text-slate-300">Pattadar: <strong>{ownerName}</strong></span>
+                    <span className="text-slate-200">Pattadar: <strong>{ownerName}</strong></span>
                   </div>
-                  <div className="p-2.5 bg-slate-800/80 rounded-xl border border-slate-700/80 flex items-center space-x-2">
+                  <div className="p-3 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 flex items-center space-x-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span className="text-slate-300">Survey: <strong>{surveyNumber}</strong></span>
+                    <span className="text-slate-200">Survey: <strong>{surveyNumber}</strong></span>
                   </div>
-                  <div className="p-2.5 bg-slate-800/80 rounded-xl border border-slate-700/80 flex items-center space-x-2">
+                  <div className="p-3 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 flex items-center space-x-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span className="text-slate-300">Extent: <strong>{landSize} {landUnit}</strong></span>
+                    <span className="text-slate-200">Extent: <strong>{landSize} {landUnit}</strong></span>
                   </div>
                 </div>
               </div>
@@ -1035,7 +1035,7 @@ export const CreateListingWizard: React.FC<CreateListingWizardProps> = ({
 
             {/* Optional Skip Toggle */}
             {!uploadedDocName && (
-              <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between">
+              <div className="p-4 bg-slate-50/80 backdrop-blur-md rounded-2xl border border-slate-200/80 flex items-center justify-between">
                 <div>
                   <p className="text-xs font-bold text-slate-800">Don't have documents ready right now?</p>
                   <p className="text-[11px] text-slate-500">You can publish now and upload revenue passbooks later from Seller Studio.</p>
@@ -1043,8 +1043,8 @@ export const CreateListingWizard: React.FC<CreateListingWizardProps> = ({
                 <button
                   type="button"
                   onClick={() => setSkipDocumentForNow(true)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-colors cursor-pointer ${
-                    skipDocumentForNow ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-700 border-slate-300'
+                  className={`px-4 py-2 rounded-full text-xs font-bold border transition-colors spring-press cursor-pointer ${
+                    skipDocumentForNow ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-700 border-slate-300'
                   }`}
                 >
                   {skipDocumentForNow ? 'Publishing Without Docs' : 'Skip For Now'}
@@ -1053,11 +1053,11 @@ export const CreateListingWizard: React.FC<CreateListingWizardProps> = ({
             )}
 
             {/* Bottom Actions */}
-            <div className="pt-2 border-t border-slate-200 flex space-x-3 items-center">
+            <div className="pt-3 border-t border-slate-200 flex space-x-3 items-center">
               <button
                 type="button"
                 onClick={() => setStep(1)}
-                className="py-3 px-4 text-xs font-semibold border border-slate-200 rounded-xl hover:bg-slate-50 text-slate-700 transition-colors flex items-center space-x-1.5 cursor-pointer"
+                className="py-3 px-5 text-xs font-bold border border-slate-200 bg-white/80 rounded-full hover:bg-white text-slate-700 transition-colors flex items-center space-x-1.5 spring-press cursor-pointer"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Back to Details</span>
@@ -1066,7 +1066,7 @@ export const CreateListingWizard: React.FC<CreateListingWizardProps> = ({
                 type="button"
                 disabled={loading || isVerifyingDoc}
                 onClick={handlePublishListing}
-                className="flex-1 py-3 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-xs transition-colors disabled:opacity-50 flex items-center justify-center space-x-2 cursor-pointer"
+                className="flex-1 py-3 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-full shadow-lg shadow-emerald-600/30 transition-all disabled:opacity-50 flex items-center justify-center space-x-2 spring-press cursor-pointer"
               >
                 {loading ? (
                   <>

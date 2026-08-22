@@ -13,6 +13,38 @@ import { UserProfile, UserRole } from '../types';
 
 const AUTH_USER_STORAGE_KEY = 'bhoomix_authenticated_user_profile_v4';
 
+// Helper to format Indian phone numbers consistently
+export function formatIndianPhoneNumber(input?: string | null): string {
+  if (!input) return '';
+  const trimmed = input.trim();
+  if (!trimmed) return '';
+
+  const digits = trimmed.replace(/\D/g, '');
+  if (digits.length === 12 && digits.startsWith('91')) {
+    return `+91 ${digits.slice(2)}`;
+  }
+  if (digits.length === 11 && digits.startsWith('0')) {
+    return `+91 ${digits.slice(1)}`;
+  }
+  if (digits.length === 10) {
+    return `+91 ${digits}`;
+  }
+  if (trimmed.startsWith('+91')) {
+    return trimmed;
+  }
+  return trimmed;
+}
+
+// Helper to validate Indian phone numbers
+export function validateIndianPhoneNumber(input?: string | null): boolean {
+  if (!input || !input.trim()) return true;
+  const digits = input.trim().replace(/\D/g, '');
+  if (digits.length === 10) return true;
+  if (digits.length === 11 && digits.startsWith('0')) return true;
+  if (digits.length === 12 && digits.startsWith('91')) return true;
+  return false;
+}
+
 // Helper to parse Full Name into First and Last names
 export function parseNames(fullName?: string | null): { firstName: string; lastName: string } {
   if (!fullName || !fullName.trim()) {
@@ -22,6 +54,17 @@ export function parseNames(fullName?: string | null): { firstName: string; lastN
   const firstName = parts[0] || 'User';
   const lastName = parts.slice(1).join(' ') || '';
   return { firstName, lastName };
+}
+
+// Clean object helper to ensure Firestore never receives undefined properties
+export function cleanObjectForFirestore<T extends Record<string, any>>(obj: T): Record<string, any> {
+  const clean: Record<string, any> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (value !== undefined) {
+      clean[key] = value;
+    }
+  }
+  return clean;
 }
 
 // Built-in Test Personas for Judge Mode and Seamless Testing
@@ -66,23 +109,21 @@ export const authService = {
   },
 
   // Save active profile to localStorage and broadcast change event
-  saveActiveProfile(profile: UserProfile | null): void {
+  saveActiveProfile(profile: UserProfile | null, syncToFirestore: boolean = false): void {
     try {
       if (profile) {
         localStorage.setItem(AUTH_USER_STORAGE_KEY, JSON.stringify(profile));
         window.dispatchEvent(
           new CustomEvent('bhoomix_auth_changed', { detail: { user: profile } })
         );
-        // Persist to Firestore in background
-        setDoc(
-          doc(db, 'users', profile.id),
-          {
+        if (syncToFirestore) {
+          const clean = cleanObjectForFirestore({
             ...profile,
             userId: profile.id,
             updatedAt: new Date().toISOString(),
-          },
-          { merge: true }
-        ).catch(() => {});
+          });
+          setDoc(doc(db, 'users', profile.id), clean, { merge: true }).catch(() => {});
+        }
       } else {
         localStorage.removeItem(AUTH_USER_STORAGE_KEY);
         window.dispatchEvent(
@@ -104,52 +145,64 @@ export const authService = {
     const unsubscribeFb = onAuthStateChanged(auth, async (fbUser: FirebaseUser | null) => {
       if (fbUser) {
         const { firstName, lastName } = parseNames(fbUser.displayName);
+        const stored = this.getCurrentStoredProfile();
+        const isMatchingStored = stored && stored.id === fbUser.uid;
+
         const fallbackProfile: UserProfile = {
           id: fbUser.uid,
           userId: fbUser.uid,
-          firstName,
-          lastName,
-          displayName: fbUser.displayName || `${firstName} ${lastName}`.trim() || fbUser.email?.split('@')[0] || 'BhoomiX User',
-          email: fbUser.email || '',
-          phoneNumber: fbUser.phoneNumber || undefined,
-          phone: fbUser.phoneNumber || undefined,
-          profilePhoto: fbUser.photoURL || undefined,
-          avatarUrl: fbUser.photoURL || undefined,
-          role: 'BUYER',
-          createdAt: new Date().toISOString(),
+          firstName: isMatchingStored && stored.firstName ? stored.firstName : firstName,
+          lastName: isMatchingStored && stored.lastName ? stored.lastName : lastName,
+          displayName:
+            isMatchingStored && stored.displayName
+              ? stored.displayName
+              : fbUser.displayName || `${firstName} ${lastName}`.trim() || fbUser.email?.split('@')[0] || 'BhoomiX User',
+          email: fbUser.email || stored?.email || '',
+          phoneNumber: isMatchingStored ? stored.phoneNumber || stored.phone || fbUser.phoneNumber || undefined : fbUser.phoneNumber || undefined,
+          phone: isMatchingStored ? stored.phone || stored.phoneNumber || fbUser.phoneNumber || undefined : fbUser.phoneNumber || undefined,
+          profilePhoto: fbUser.photoURL || stored?.profilePhoto || undefined,
+          avatarUrl: fbUser.photoURL || stored?.avatarUrl || undefined,
+          role: isMatchingStored && stored.role ? stored.role : 'BUYER',
+          createdAt: isMatchingStored && stored.createdAt ? stored.createdAt : new Date().toISOString(),
         };
 
-        // Emit immediately to ensure responsive UI
-        this.saveActiveProfile(fallbackProfile);
+        // Emit initial resolved profile
+        this.saveActiveProfile(fallbackProfile, false);
         callback(fallbackProfile);
 
-        // Safely check remote Firestore in background with race timeout
+        // Fetch fresh Firestore user record (Source of Truth)
         try {
-          const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 2500));
+          const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 4000));
           const userDocPromise = getDoc(doc(db, 'users', fbUser.uid));
           const userDoc: any = await Promise.race([userDocPromise, timeoutPromise]);
-          
+
           if (userDoc && userDoc.exists && userDoc.exists()) {
             const data = userDoc.data();
             const profile: UserProfile = {
               ...fallbackProfile,
               ...data,
+              id: fbUser.uid,
+              userId: fbUser.uid,
               role: data.role || fallbackProfile.role,
+              phone: data.phone || data.phoneNumber || fallbackProfile.phone || undefined,
+              phoneNumber: data.phoneNumber || data.phone || fallbackProfile.phoneNumber || undefined,
             };
-            this.saveActiveProfile(profile);
+            this.saveActiveProfile(profile, false);
             callback(profile);
           } else {
-            setDoc(doc(db, 'users', fbUser.uid), fallbackProfile, { merge: true }).catch(() => {});
+            // First time user registration in Firestore
+            const clean = cleanObjectForFirestore(fallbackProfile);
+            setDoc(doc(db, 'users', fbUser.uid), clean, { merge: true }).catch(() => {});
           }
         } catch (e) {
-          // Non-fatal, offline/timeout gracefully swallowed
+          // Graceful fallback for offline initial loads
         }
       } else {
         // If not logged into Firebase Auth, check if custom persona is stored in local storage
         const current = this.getCurrentStoredProfile();
         // If the stored profile was a real firebase uid (not a mock persona), clear it
         if (current && !current.id.startsWith('user_seller_rahul') && !current.id.startsWith('user_buyer_shiva')) {
-          this.saveActiveProfile(null);
+          this.saveActiveProfile(null, false);
           callback(null);
         } else if (!current) {
           callback(null);
@@ -328,32 +381,55 @@ export const authService = {
     }
   },
 
-  // Update current user profile
+  // Update current user profile with authentic UID and Firestore verification
   async updateUserProfile(userId: string, updates: Partial<UserProfile>): Promise<UserProfile> {
+    const activeAuthUid = auth.currentUser?.uid;
+    const targetUid = activeAuthUid || userId;
+
+    if (!targetUid) {
+      throw new Error('Your session has expired. Please sign in again.');
+    }
+
+    // Normalize phone number if present in updates
+    const sanitizedUpdates: Partial<UserProfile> = { ...updates };
+    if (sanitizedUpdates.phone !== undefined || sanitizedUpdates.phoneNumber !== undefined) {
+      const rawPhone = sanitizedUpdates.phone ?? sanitizedUpdates.phoneNumber;
+      const formatted = formatIndianPhoneNumber(rawPhone);
+      sanitizedUpdates.phone = formatted;
+      sanitizedUpdates.phoneNumber = formatted;
+    }
+
+    // Prepare clean payload for Firestore without undefined values
+    const cleanPayload = cleanObjectForFirestore({
+      ...sanitizedUpdates,
+      id: targetUid,
+      userId: targetUid,
+      updatedAt: new Date().toISOString(),
+    });
+
+    // Write to Firestore with timeout protection so UI is never stuck
+    const userRef = doc(db, 'users', targetUid);
+    const firestoreWritePromise = setDoc(userRef, cleanPayload, { merge: true });
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(
+        () => reject(new Error('Unable to save profile. Please check your internet connection and try again.')),
+        8000
+      )
+    );
+
+    await Promise.race([firestoreWritePromise, timeoutPromise]);
+
     const current = this.getCurrentStoredProfile();
     const updated: UserProfile = {
       ...(current || ({} as UserProfile)),
-      ...updates,
-      id: userId,
-      userId,
+      ...sanitizedUpdates,
+      id: targetUid,
+      userId: targetUid,
       updatedAt: new Date().toISOString(),
     };
 
-    this.saveActiveProfile(updated);
-
-    try {
-      const userRef = doc(db, 'users', userId);
-      await setDoc(
-        userRef,
-        {
-          ...updates,
-          updatedAt: new Date().toISOString(),
-        },
-        { merge: true }
-      );
-    } catch (error) {
-      console.warn('Firestore user update note:', error);
-    }
+    // Update local storage and notify all application state listeners
+    this.saveActiveProfile(updated, false);
 
     return updated;
   },

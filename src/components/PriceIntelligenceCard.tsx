@@ -98,24 +98,24 @@ export const PriceIntelligenceCard: React.FC<PriceIntelligenceCardProps> = ({ pr
   const verdict = getVerdictBadge(intel?.valuationVerdict);
 
   return (
-    <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6 space-y-6">
+    <div className="liquid-glass-card rounded-3xl border border-white/90 shadow-[0_8px_30px_rgba(15,23,42,0.06)] p-6 sm:p-8 space-y-6">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-100">
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-5 border-b border-slate-200/60">
         <div>
           <div className="flex items-center space-x-2">
-            <h3 className="text-base font-bold text-slate-900">Price Intelligence & Land Valuation</h3>
-            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+            <h3 className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight">Price Intelligence & Land Valuation</h3>
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-800 border border-amber-300/60 backdrop-blur-md">
               <Sparkles className="w-3 h-3 mr-1 text-amber-600" />
               AI Evaluated
             </span>
           </div>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-slate-500 mt-0.5 font-normal">
             Micro-market benchmarking for {property.locality}, {property.district}
           </p>
         </div>
 
         {intel && (
-          <div className={`px-3 py-1 rounded-full border text-xs font-bold flex items-center space-x-2 ${verdict.bg}`}>
+          <div className={`px-3.5 py-1.5 rounded-full border text-xs font-bold flex items-center space-x-2 shadow-2xs backdrop-blur-md ${verdict.bg}`}>
             <span className={`w-2 h-2 rounded-full ${verdict.dot}`}></span>
             <span>{verdict.label}</span>
           </div>
@@ -131,45 +131,45 @@ export const PriceIntelligenceCard: React.FC<PriceIntelligenceCardProps> = ({ pr
         <div className="space-y-6">
           {/* Price Metrics Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 shadow-2xs">
-              <span className="text-[11px] font-medium text-slate-500">Seller Asking Price</span>
-              <p className="text-xl font-bold text-slate-900 mt-1 font-mono">
+            <div className="p-4 rounded-2xl bg-white/70 backdrop-blur-md border border-white/80 shadow-2xs">
+              <span className="text-[11px] font-bold text-slate-500">Seller Asking Price</span>
+              <p className="text-xl font-black text-slate-900 mt-1 font-mono tracking-tight">
                 {formatINR(property.askingPrice)}
               </p>
-              <p className="text-xs font-bold text-indigo-600 mt-0.5">
+              <p className="text-xs font-extrabold text-indigo-600 mt-0.5">
                 {formatINR(intel.normalizedPricePerUnit)} / {property.landUnit}
               </p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 shadow-2xs">
-              <span className="text-[11px] font-medium text-slate-500">Comparable Market Band</span>
-              <p className="text-sm font-bold text-slate-900 mt-1 font-mono">
+            <div className="p-4 rounded-2xl bg-white/70 backdrop-blur-md border border-white/80 shadow-2xs">
+              <span className="text-[11px] font-bold text-slate-500">Comparable Market Band</span>
+              <p className="text-sm sm:text-base font-black text-slate-900 mt-1 font-mono tracking-tight">
                 {formatINR(intel.marketRangeMin)} - {formatINR(intel.marketRangeMax)}
               </p>
-              <p className="text-[11px] text-slate-500 mt-0.5">Based on recent corridor listings</p>
+              <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Based on recent corridor listings</p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 shadow-2xs">
-              <span className="text-[11px] font-medium text-slate-500">Govt. Reference Value (Guideline)</span>
-              <p className="text-sm font-bold text-slate-900 mt-1 font-mono">
+            <div className="p-4 rounded-2xl bg-white/70 backdrop-blur-md border border-white/80 shadow-2xs">
+              <span className="text-[11px] font-bold text-slate-500">Govt. Reference Value (Guideline)</span>
+              <p className="text-sm sm:text-base font-black text-slate-900 mt-1 font-mono tracking-tight">
                 {formatINR(intel.referenceGovtValue)} / {property.landUnit}
               </p>
-              <p className="text-[11px] text-slate-500 mt-0.5">State Registration sub-registrar rate</p>
+              <p className="text-[11px] text-slate-500 mt-0.5 font-medium">State Registration sub-registrar rate</p>
             </div>
           </div>
 
           {/* AI Explanation Callout */}
-          <div className="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-100 text-xs text-indigo-950 space-y-2">
+          <div className="p-4 rounded-2xl bg-indigo-50/70 backdrop-blur-md border border-indigo-100/80 text-xs text-indigo-950 space-y-2">
             <div className="flex items-center space-x-1.5 font-bold text-indigo-900">
               <Info className="w-4 h-4 text-indigo-600" />
               <span>Valuation Reasoning</span>
             </div>
-            <p className="leading-relaxed text-slate-700">{intel.verdictExplanation}</p>
+            <p className="leading-relaxed text-slate-700 font-normal">{intel.verdictExplanation}</p>
           </div>
 
           {/* Acquisition Cost Calculator breakdown */}
-          <div className="p-5 rounded-2xl bg-slate-900 text-white space-y-3 shadow-sm">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+          <div className="p-5 sm:p-6 rounded-3xl liquid-glass-dark text-white space-y-4 shadow-[0_12px_32px_rgba(15,23,42,0.25)] border border-slate-800">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
               <div className="flex items-center space-x-2">
                 <Calculator className="w-4 h-4 text-indigo-400" />
                 <span className="text-xs font-bold uppercase tracking-wider">Estimated Total Acquisition Cost</span>
@@ -177,32 +177,32 @@ export const PriceIntelligenceCard: React.FC<PriceIntelligenceCardProps> = ({ pr
               <span className="text-xs text-slate-400">All expenses inclusive</span>
             </div>
 
-            <div className="space-y-2 text-xs text-slate-300">
+            <div className="space-y-2.5 text-xs text-slate-300">
               <div className="flex justify-between">
                 <span>1. Property Asking Value:</span>
-                <span className="font-mono text-white font-medium">{formatINR(property.askingPrice)}</span>
+                <span className="font-mono text-white font-semibold">{formatINR(property.askingPrice)}</span>
               </div>
               <div className="flex justify-between">
                 <span>2. Stamp Duty & Registration (~7.5%):</span>
-                <span className="font-mono text-white font-medium">
+                <span className="font-mono text-white font-semibold">
                   {formatINR(intel.estimatedAdditionalCosts.stampDutyAndRegistration)}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span>3. Title Search & Legal Verification:</span>
-                <span className="font-mono text-white font-medium">
+                <span className="font-mono text-white font-semibold">
                   {formatINR(intel.estimatedAdditionalCosts.legalAndDueDiligence)}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span>4. DGPS Survey & Demarcation Fencing:</span>
-                <span className="font-mono text-white font-medium">
+                <span className="font-mono text-white font-semibold">
                   {formatINR(intel.estimatedAdditionalCosts.boundarySurveyAndFencing)}
                 </span>
               </div>
-              <div className="pt-2 border-t border-slate-800 flex justify-between font-bold text-sm text-indigo-300">
+              <div className="pt-3 border-t border-slate-800 flex justify-between font-bold text-sm text-indigo-300 items-baseline">
                 <span>Estimated Total Outlay:</span>
-                <span className="font-mono text-white text-base">
+                <span className="font-mono text-white text-lg font-black">
                   {formatINR(intel.estimatedAdditionalCosts.totalEstimatedAcquisitionCost)}
                 </span>
               </div>
@@ -211,14 +211,14 @@ export const PriceIntelligenceCard: React.FC<PriceIntelligenceCardProps> = ({ pr
 
           {/* Growth Catalysts */}
           {intel.growthCatalysts && intel.growthCatalysts.length > 0 && (
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
                 Corridor Growth Catalysts
               </h4>
-              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {intel.growthCatalysts.map((cat, i) => (
-                  <li key={i} className="text-xs text-slate-700 flex items-start space-x-2 p-3 rounded-xl bg-slate-50 border border-slate-200/80 font-medium">
-                    <TrendingUp className="w-3.5 h-3.5 text-indigo-600 shrink-0 mt-0.5" />
+                  <li key={i} className="text-xs text-slate-700 flex items-start space-x-2 p-3.5 rounded-2xl bg-white/70 backdrop-blur-md border border-white/80 font-medium shadow-2xs">
+                    <TrendingUp className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
                     <span>{cat}</span>
                   </li>
                 ))}

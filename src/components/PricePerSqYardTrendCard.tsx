@@ -239,20 +239,20 @@ export const PricePerSqYardTrendCard: React.FC<PricePerSqYardTrendCardProps> = (
   return (
     <div
       id="price-per-sqyard-trend-card"
-      className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden transition-all"
+      className="liquid-glass-card rounded-3xl border border-white/90 shadow-[0_8px_30px_rgba(15,23,42,0.06)] overflow-hidden transition-all"
     >
       {/* Card Header */}
-      <div className="bg-slate-900 text-white p-5 sm:p-6 flex flex-wrap items-center justify-between gap-4">
+      <div className="liquid-glass-dark text-white p-5 sm:p-7 flex flex-wrap items-center justify-between gap-4 border-b border-slate-800">
         <div className="flex items-center space-x-3.5">
-          <div className="w-11 h-11 rounded-2xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center text-emerald-400 font-bold shrink-0 shadow-inner">
-            <TrendingUp className="w-5 h-5" />
+          <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center text-emerald-400 font-bold shrink-0 shadow-inner backdrop-blur-md">
+            <TrendingUp className="w-6 h-6" />
           </div>
           <div>
             <div className="flex items-center space-x-2">
-              <h3 className="text-base font-bold text-white tracking-tight">
-                Price Per Square Yard & Telangana Market Trend
+              <h3 className="text-base sm:text-lg font-extrabold text-white tracking-tight">
+                Price Per Sq. Yard & Corridor Trend
               </h3>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+              <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 backdrop-blur-md">
                 Corridor Analytics
               </span>
             </div>
@@ -263,12 +263,12 @@ export const PricePerSqYardTrendCard: React.FC<PricePerSqYardTrendCardProps> = (
         </div>
 
         {/* View Tabs */}
-        <div className="bg-slate-800 p-1 rounded-xl flex items-center space-x-1 text-xs font-semibold">
+        <div className="liquid-glass p-1.5 rounded-full flex items-center space-x-1 text-xs font-semibold border border-white/10">
           <button
             type="button"
             onClick={() => setActiveTab('chart')}
-            className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-              activeTab === 'chart' ? 'bg-indigo-600 text-white shadow-2xs' : 'text-slate-400 hover:text-white'
+            className={`px-3.5 py-1.5 rounded-full transition-all spring-press cursor-pointer ${
+              activeTab === 'chart' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
             }`}
           >
             Trend Chart
@@ -276,8 +276,8 @@ export const PricePerSqYardTrendCard: React.FC<PricePerSqYardTrendCardProps> = (
           <button
             type="button"
             onClick={() => setActiveTab('comparison')}
-            className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-              activeTab === 'comparison' ? 'bg-indigo-600 text-white shadow-2xs' : 'text-slate-400 hover:text-white'
+            className={`px-3.5 py-1.5 rounded-full transition-all spring-press cursor-pointer ${
+              activeTab === 'comparison' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
             }`}
           >
             Comparison Matrix
@@ -285,8 +285,8 @@ export const PricePerSqYardTrendCard: React.FC<PricePerSqYardTrendCardProps> = (
           <button
             type="button"
             onClick={() => setActiveTab('drivers')}
-            className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-              activeTab === 'drivers' ? 'bg-indigo-600 text-white shadow-2xs' : 'text-slate-400 hover:text-white'
+            className={`px-3.5 py-1.5 rounded-full transition-all spring-press cursor-pointer ${
+              activeTab === 'drivers' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
             }`}
           >
             Corridor Drivers
@@ -294,11 +294,11 @@ export const PricePerSqYardTrendCard: React.FC<PricePerSqYardTrendCardProps> = (
         </div>
       </div>
 
-      <div className="p-5 sm:p-6 space-y-6">
+      <div className="p-6 sm:p-8 space-y-6">
         {/* Metric Comparison Ribbon */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* 1. This Property Rate */}
-          <div className="p-4 rounded-2xl bg-indigo-50/80 border border-indigo-200/90 space-y-1">
+          <div className="p-4 sm:p-5 rounded-2xl bg-indigo-50/70 backdrop-blur-md border border-indigo-200/80 space-y-1 shadow-2xs">
             <span className="text-[10px] font-bold text-indigo-900 uppercase tracking-wider">
               This Property Rate
             </span>
@@ -311,39 +311,39 @@ export const PricePerSqYardTrendCard: React.FC<PricePerSqYardTrendCardProps> = (
           </div>
 
           {/* 2. Local Market Average */}
-          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-1">
+          <div className="p-4 sm:p-5 rounded-2xl bg-white/70 backdrop-blur-md border border-white/90 space-y-1 shadow-2xs">
             <span className="text-[10px] font-bold text-slate-700 uppercase tracking-wider">
               {property.locality || 'Locality'} Market Average
             </span>
-            <div className="text-xl sm:text-2xl font-bold text-slate-900 font-mono">
+            <div className="text-xl sm:text-2xl font-black text-slate-900 font-mono tracking-tight">
               {formatPerSqYd(marketBenchmark.avgMarketRate)}
             </div>
-            <p className="text-[11px] text-slate-500">
+            <p className="text-[11px] text-slate-500 font-medium">
               Traded market rate along corridor
             </p>
           </div>
 
           {/* 3. Govt Guidance Value */}
-          <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200/80 space-y-1">
+          <div className="p-4 sm:p-5 rounded-2xl bg-amber-50/70 backdrop-blur-md border border-amber-200/80 space-y-1 shadow-2xs">
             <span className="text-[10px] font-bold text-amber-900 uppercase tracking-wider">
               Telangana Govt Guidance
             </span>
-            <div className="text-xl sm:text-2xl font-bold text-amber-950 font-mono">
+            <div className="text-xl sm:text-2xl font-black text-amber-950 font-mono tracking-tight">
               {formatPerSqYd(marketBenchmark.govtGuidanceRate)}
             </div>
-            <p className="text-[11px] text-amber-800">
+            <p className="text-[11px] text-amber-800 font-medium">
               Dharani official base registration value
             </p>
           </div>
 
           {/* 4. Variance / Valuation Verdict */}
           <div
-            className={`p-4 rounded-2xl border space-y-1 ${
+            className={`p-4 sm:p-5 rounded-2xl border space-y-1 backdrop-blur-md shadow-2xs ${
               marketBenchmark.variancePercent <= 0
-                ? 'bg-emerald-50/90 border-emerald-200/90'
+                ? 'bg-emerald-50/80 border-emerald-200/90'
                 : marketBenchmark.variancePercent < 15
-                ? 'bg-blue-50/90 border-blue-200/90'
-                : 'bg-purple-50/90 border-purple-200/90'
+                ? 'bg-blue-50/80 border-blue-200/90'
+                : 'bg-purple-50/80 border-purple-200/90'
             }`}
           >
             <span className="text-[10px] font-bold text-slate-700 uppercase tracking-wider">
@@ -355,7 +355,7 @@ export const PricePerSqYardTrendCard: React.FC<PricePerSqYardTrendCardProps> = (
               ) : (
                 <ArrowUpRight className="w-5 h-5 text-indigo-600" />
               )}
-              <span className="text-xl sm:text-2xl font-black font-mono text-slate-900">
+              <span className="text-xl sm:text-2xl font-black font-mono text-slate-900 tracking-tight">
                 {Math.abs(marketBenchmark.variancePercent)}%
               </span>
             </div>
@@ -386,7 +386,7 @@ export const PricePerSqYardTrendCard: React.FC<PricePerSqYardTrendCardProps> = (
                 <span className="text-xs font-bold text-slate-900">
                   {marketBenchmark.corridorName}
                 </span>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800">
+                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
                   CAGR: +{marketBenchmark.cagrRate}%
                 </span>
               </div>
@@ -397,8 +397,8 @@ export const PricePerSqYardTrendCard: React.FC<PricePerSqYardTrendCardProps> = (
                 <button
                   type="button"
                   onClick={() => setTrendHorizon('3Y')}
-                  className={`px-2.5 py-1 rounded-lg font-semibold transition-colors cursor-pointer ${
-                    trendHorizon === '3Y' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  className={`px-3 py-1 rounded-full font-semibold transition-all spring-press cursor-pointer ${
+                    trendHorizon === '3Y' ? 'bg-indigo-600 text-white shadow-xs' : 'bg-white/80 border border-slate-200 text-slate-700 hover:bg-white'
                   }`}
                 >
                   3 Years
@@ -406,8 +406,8 @@ export const PricePerSqYardTrendCard: React.FC<PricePerSqYardTrendCardProps> = (
                 <button
                   type="button"
                   onClick={() => setTrendHorizon('5Y')}
-                  className={`px-2.5 py-1 rounded-lg font-semibold transition-colors cursor-pointer ${
-                    trendHorizon === '5Y' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  className={`px-3 py-1 rounded-full font-semibold transition-all spring-press cursor-pointer ${
+                    trendHorizon === '5Y' ? 'bg-indigo-600 text-white shadow-xs' : 'bg-white/80 border border-slate-200 text-slate-700 hover:bg-white'
                   }`}
                 >
                   5-Year Historical
@@ -415,8 +415,8 @@ export const PricePerSqYardTrendCard: React.FC<PricePerSqYardTrendCardProps> = (
                 <button
                   type="button"
                   onClick={() => setTrendHorizon('PROJECTED')}
-                  className={`px-2.5 py-1 rounded-lg font-semibold transition-colors cursor-pointer ${
-                    trendHorizon === 'PROJECTED' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  className={`px-3 py-1 rounded-full font-semibold transition-all spring-press cursor-pointer ${
+                    trendHorizon === 'PROJECTED' ? 'bg-indigo-600 text-white shadow-xs' : 'bg-white/80 border border-slate-200 text-slate-700 hover:bg-white'
                   }`}
                 >
                   2027 Projected
@@ -439,7 +439,7 @@ export const PricePerSqYardTrendCard: React.FC<PricePerSqYardTrendCardProps> = (
                     </linearGradient>
                   </defs>
 
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.6} />
                   <XAxis
                     dataKey="year"
                     tick={{ fill: '#64748b', fontSize: 11, fontWeight: 600 }}
@@ -461,10 +461,11 @@ export const PricePerSqYardTrendCard: React.FC<PricePerSqYardTrendCardProps> = (
                     }}
                     labelStyle={{ fontWeight: 'bold', color: '#0f172a' }}
                     contentStyle={{
-                      backgroundColor: '#ffffff',
-                      borderRadius: '12px',
-                      border: '1px solid #e2e8f0',
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                      backdropFilter: 'blur(16px)',
+                      borderRadius: '16px',
+                      border: '1px solid rgba(255, 255, 255, 0.8)',
+                      boxShadow: '0 12px 30px rgba(15, 23, 42, 0.12)',
                       fontSize: '12px',
                     }}
                   />
@@ -519,7 +520,7 @@ export const PricePerSqYardTrendCard: React.FC<PricePerSqYardTrendCardProps> = (
               </ResponsiveContainer>
             </div>
 
-            <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1 border-t border-slate-100">
+            <div className="flex items-center justify-between text-[11px] text-slate-500 pt-2 border-t border-slate-200/60">
               <span className="flex items-center space-x-1.5">
                 <Info className="w-3.5 h-3.5 text-indigo-600" />
                 <span>Historical transaction trends sourced from Telangana registration registries and corridor survey logs.</span>
@@ -536,93 +537,93 @@ export const PricePerSqYardTrendCard: React.FC<PricePerSqYardTrendCardProps> = (
               Corridor Price Per Sq. Yard Matrix for {property.locality}, {property.district}
             </h4>
 
-            <div className="overflow-x-auto border border-slate-200 rounded-xl">
+            <div className="overflow-x-auto border border-white/90 rounded-2xl bg-white/70 backdrop-blur-md shadow-2xs">
               <table className="w-full text-xs text-left">
-                <thead className="bg-slate-100 text-slate-700 font-bold border-b border-slate-200 text-[11px]">
+                <thead className="bg-slate-100/80 text-slate-700 font-bold border-b border-slate-200/80 text-[11px]">
                   <tr>
-                    <th className="py-2.5 px-3">Land Classification / Benchmark</th>
-                    <th className="py-2.5 px-3">Rate (₹ / Sq. Yd)</th>
-                    <th className="py-2.5 px-3">Rate (₹ / Gunta)</th>
-                    <th className="py-2.5 px-3">Rate (₹ / Acre)</th>
-                    <th className="py-2.5 px-3">Status</th>
+                    <th className="py-3 px-3.5">Land Classification / Benchmark</th>
+                    <th className="py-3 px-3.5">Rate (₹ / Sq. Yd)</th>
+                    <th className="py-3 px-3.5">Rate (₹ / Gunta)</th>
+                    <th className="py-3 px-3.5">Rate (₹ / Acre)</th>
+                    <th className="py-3 px-3.5">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 font-mono text-[11px] text-slate-800">
-                  <tr className="bg-indigo-50/60 font-semibold">
-                    <td className="py-2.5 px-3 font-bold text-indigo-900">
+                  <tr className="bg-indigo-50/70 font-semibold">
+                    <td className="py-3 px-3.5 font-bold text-indigo-900">
                       🌟 This Property Asking Price
                     </td>
-                    <td className="py-2.5 px-3 font-bold text-indigo-950">
+                    <td className="py-3 px-3.5 font-bold text-indigo-950">
                       {formatPerSqYd(currentPricePerSqYard)}
                     </td>
-                    <td className="py-2.5 px-3 text-indigo-900">
+                    <td className="py-3 px-3.5 text-indigo-900">
                       {formatINR(currentPricePerSqYard * 121)}
                     </td>
-                    <td className="py-2.5 px-3 text-indigo-900">
+                    <td className="py-3 px-3.5 text-indigo-900">
                       {formatINR(currentPricePerSqYard * 4840)}
                     </td>
-                    <td className="py-2.5 px-3">
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-800">
+                    <td className="py-3 px-3.5">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-800">
                         Active Listing
                       </span>
                     </td>
                   </tr>
 
-                  <tr className="hover:bg-slate-50">
-                    <td className="py-2 px-3 font-medium text-slate-900">
+                  <tr className="hover:bg-white/80">
+                    <td className="py-2.5 px-3.5 font-medium text-slate-900">
                       Locality Traded Market Average
                     </td>
-                    <td className="py-2 px-3 font-bold text-slate-900">
+                    <td className="py-2.5 px-3.5 font-bold text-slate-900">
                       {formatPerSqYd(marketBenchmark.avgMarketRate)}
                     </td>
-                    <td className="py-2 px-3 text-slate-600">
+                    <td className="py-2.5 px-3.5 text-slate-600">
                       {formatINR(marketBenchmark.avgMarketRate * 121)}
                     </td>
-                    <td className="py-2 px-3 text-slate-600">
+                    <td className="py-2.5 px-3.5 text-slate-600">
                       {formatINR(marketBenchmark.avgMarketRate * 4840)}
                     </td>
-                    <td className="py-2 px-3">
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
+                    <td className="py-2.5 px-3.5">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
                         Market Avg
                       </span>
                     </td>
                   </tr>
 
-                  <tr className="hover:bg-slate-50">
-                    <td className="py-2 px-3 font-medium text-slate-900">
+                  <tr className="hover:bg-white/80">
+                    <td className="py-2.5 px-3.5 font-medium text-slate-900">
                       Dharani / Sub-Registrar Basic Value
                     </td>
-                    <td className="py-2 px-3 font-bold text-amber-900">
+                    <td className="py-2.5 px-3.5 font-bold text-amber-900">
                       {formatPerSqYd(marketBenchmark.govtGuidanceRate)}
                     </td>
-                    <td className="py-2 px-3 text-slate-600">
+                    <td className="py-2.5 px-3.5 text-slate-600">
                       {formatINR(marketBenchmark.govtGuidanceRate * 121)}
                     </td>
-                    <td className="py-2 px-3 text-slate-600">
+                    <td className="py-2.5 px-3.5 text-slate-600">
                       {formatINR(marketBenchmark.govtGuidanceRate * 4840)}
                     </td>
-                    <td className="py-2 px-3">
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
+                    <td className="py-2.5 px-3.5">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
                         Govt Floor
                       </span>
                     </td>
                   </tr>
 
-                  <tr className="hover:bg-slate-50">
-                    <td className="py-2 px-3 font-medium text-slate-900">
+                  <tr className="hover:bg-white/80">
+                    <td className="py-2.5 px-3.5 font-medium text-slate-900">
                       Gated Community / Villa Plot Corridor Rate
                     </td>
-                    <td className="py-2 px-3 font-bold text-slate-900">
+                    <td className="py-2.5 px-3.5 font-bold text-slate-900">
                       {formatPerSqYd(Math.round(marketBenchmark.avgMarketRate * 1.35))}
                     </td>
-                    <td className="py-2 px-3 text-slate-600">
+                    <td className="py-2.5 px-3.5 text-slate-600">
                       {formatINR(Math.round(marketBenchmark.avgMarketRate * 1.35 * 121))}
                     </td>
-                    <td className="py-2 px-3 text-slate-600">
+                    <td className="py-2.5 px-3.5 text-slate-600">
                       {formatINR(Math.round(marketBenchmark.avgMarketRate * 1.35 * 4840))}
                     </td>
-                    <td className="py-2 px-3">
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800">
+                    <td className="py-2.5 px-3.5">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800">
                         Developed Plot
                       </span>
                     </td>
@@ -631,7 +632,7 @@ export const PricePerSqYardTrendCard: React.FC<PricePerSqYardTrendCardProps> = (
               </table>
             </div>
 
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600 leading-relaxed">
+            <div className="p-3.5 bg-white/70 backdrop-blur-md rounded-2xl border border-white/90 text-xs text-slate-600 leading-relaxed shadow-2xs">
               <span className="font-bold text-slate-900">Standard Conversion Guide in Telangana:</span>{' '}
               1 Acre = 40 Guntas = 4,840 Sq. Yards • 1 Gunta = 121 Sq. Yards • 1 Sq. Yard = 9 Sq. Feet.
             </div>
@@ -646,42 +647,42 @@ export const PricePerSqYardTrendCard: React.FC<PricePerSqYardTrendCardProps> = (
             </h4>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/90 space-y-1.5">
+              <div className="p-4 rounded-2xl bg-white/70 backdrop-blur-md border border-white/90 space-y-1.5 shadow-2xs">
                 <div className="flex items-center space-x-2 text-indigo-700 font-bold">
                   <CheckCircle2 className="w-4 h-4 text-indigo-600 shrink-0" />
                   <span>Regional Ring Road (RRR) Radial Connectivity</span>
                 </div>
-                <p className="text-slate-600 text-[11px] leading-relaxed">
+                <p className="text-slate-600 text-[11px] leading-relaxed font-normal">
                   High-speed arterial connectivity bridging key industrial hubs to Outer Ring Road (ORR).
                 </p>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/90 space-y-1.5">
+              <div className="p-4 rounded-2xl bg-white/70 backdrop-blur-md border border-white/90 space-y-1.5 shadow-2xs">
                 <div className="flex items-center space-x-2 text-emerald-700 font-bold">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                   <span>Sub-Registrar Guidance Upward Revision</span>
                 </div>
-                <p className="text-slate-600 text-[11px] leading-relaxed">
+                <p className="text-slate-600 text-[11px] leading-relaxed font-normal">
                   Historical CAGR of +{marketBenchmark.cagrRate}% supported by official revenue department circle rates.
                 </p>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/90 space-y-1.5">
+              <div className="p-4 rounded-2xl bg-white/70 backdrop-blur-md border border-white/90 space-y-1.5 shadow-2xs">
                 <div className="flex items-center space-x-2 text-indigo-700 font-bold">
                   <CheckCircle2 className="w-4 h-4 text-indigo-600 shrink-0" />
                   <span>Industrial & Logistics Clusters</span>
                 </div>
-                <p className="text-slate-600 text-[11px] leading-relaxed">
+                <p className="text-slate-600 text-[11px] leading-relaxed font-normal">
                   High demand from manufacturing, green energy hubs, and logistics warehousing developments.
                 </p>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/90 space-y-1.5">
+              <div className="p-4 rounded-2xl bg-white/70 backdrop-blur-md border border-white/90 space-y-1.5 shadow-2xs">
                 <div className="flex items-center space-x-2 text-emerald-700 font-bold">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                   <span>Direct Pattadar Title Assurance</span>
                 </div>
-                <p className="text-slate-600 text-[11px] leading-relaxed">
+                <p className="text-slate-600 text-[11px] leading-relaxed font-normal">
                   Zero brokerage direct listings ensure buyers capture full capital appreciation without intermediary inflation.
                 </p>
               </div>

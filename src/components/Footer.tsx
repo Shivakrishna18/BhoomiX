@@ -1,5 +1,6 @@
 import React from 'react';
-import { Layers, ShieldCheck, FileCheck, Compass, Sparkles } from 'lucide-react';
+import { ShieldCheck, FileCheck, Compass, Sparkles } from 'lucide-react';
+import { BhoomiXLogo } from './BhoomiXLogo';
 
 interface FooterProps {
   onNavigate?: (tab: string) => void;
@@ -7,18 +8,13 @@ interface FooterProps {
 
 export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
   return (
-    <footer className="bg-slate-900 text-slate-400 border-t border-slate-800">
+    <footer className="liquid-glass-dark text-slate-400 border-t border-slate-800/80 mt-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 lg:gap-12">
           {/* Brand Col */}
           <div className="space-y-4 md:col-span-1">
             <div className="flex items-center space-x-3">
-              <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold shadow-xs">
-                <Layers className="w-5 h-5" />
-              </div>
-              <span className="font-bold text-xl text-white tracking-tight">
-                Bhoomi<span className="text-indigo-400">X</span>
-              </span>
+              <BhoomiXLogo size="md" showTagline={false} />
             </div>
             <p className="text-xs text-slate-400 leading-relaxed">
               India's premier AI-powered direct-to-direct land discovery platform. Connecting genuine
@@ -36,11 +32,11 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               Active Telangana Corridors
             </h4>
             <ul className="space-y-2 text-xs text-slate-400">
-              <li>Shamshabad Airport & ORR Growth Corridor</li>
-              <li>Maheshwaram E-City & Hardware Park</li>
-              <li>Shankarpally - Mokila Villa Growth Belt</li>
-              <li>Yadadri Temple City & Warangal Highway</li>
-              <li>Medchal NH-44 Industrial Hub</li>
+              <li className="hover:text-slate-200 transition-colors">Shamshabad Airport & ORR Growth Corridor</li>
+              <li className="hover:text-slate-200 transition-colors">Maheshwaram E-City & Hardware Park</li>
+              <li className="hover:text-slate-200 transition-colors">Shankarpally - Mokila Villa Growth Belt</li>
+              <li className="hover:text-slate-200 transition-colors">Yadadri Temple City & Warangal Highway</li>
+              <li className="hover:text-slate-200 transition-colors">Medchal NH-44 Industrial Hub</li>
             </ul>
           </div>
 
@@ -50,20 +46,20 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               Technology & Trust
             </h4>
             <ul className="space-y-2 text-xs text-slate-400">
-              <li className="flex items-center space-x-1.5">
+              <li className="flex items-center space-x-1.5 hover:text-slate-200 transition-colors">
                 <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
                 <span>AI Document Intelligence & Dharani Extraction</span>
               </li>
-              <li className="flex items-center space-x-1.5">
+              <li className="flex items-center space-x-1.5 hover:text-slate-200 transition-colors">
                 <Compass className="w-3.5 h-3.5 text-emerald-400" />
                 <span>2D Boundary & 3D Interactive Spatial Plot</span>
               </li>
-              <li className="flex items-center space-x-1.5">
+              <li className="flex items-center space-x-1.5 hover:text-slate-200 transition-colors">
                 <FileCheck className="w-3.5 h-3.5 text-indigo-400" />
                 <span>Circle Rate & Acquisition Cost Analytics</span>
               </li>
-              <li>Direct Real-time Buyer-Seller Chat</li>
-              <li>Scheduled Site Visit Protocol</li>
+              <li className="hover:text-slate-200 transition-colors">Direct Real-time Buyer-Seller Chat</li>
+              <li className="hover:text-slate-200 transition-colors">Scheduled Site Visit Protocol</li>
             </ul>
           </div>
 
@@ -76,7 +72,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               BhoomiX is a land discovery and AI analysis platform. Document intelligence indicators are generated via automated optical and algorithmic record matching and do not substitute certified physical title verification by qualified legal advocates and local Sub-Registrar Offices (SRO).
             </p>
             <p className="text-[10px] text-slate-500">
-              © {new Date().getFullYear()} BhoomiX Technologies India. Built with Sleek Interface aesthetic.
+              © {new Date().getFullYear()} BhoomiX Technologies India. Liquid Glass Edition.
             </p>
           </div>
         </div>

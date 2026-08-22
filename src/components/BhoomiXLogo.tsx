@@ -46,19 +46,20 @@ export const BhoomiXLogo: React.FC<BhoomiXLogoProps> = ({
 
   return (
     <div className={`inline-flex items-center space-x-3 select-none ${className}`}>
-      {/* 3D Isometric Geometric Land Parcel Icon */}
+      {/* 3D Isometric Geometric Land Parcel Icon with Liquid Glass Highlight */}
       <div className={`relative ${current.icon} shrink-0 group perspective-500`}>
+        <div className="absolute inset-0 bg-indigo-500/15 rounded-xl blur-md group-hover:blur-lg transition-all duration-300 pointer-events-none -z-10" />
         <svg
           viewBox="0 0 100 100"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          className="w-full h-full drop-shadow-md transition-transform duration-300 group-hover:scale-105"
+          className="w-full h-full drop-shadow-[0_8px_16px_rgba(79,70,229,0.18)] transition-all duration-300 group-hover:scale-105 group-hover:-translate-y-0.5"
         >
           <defs>
             {/* Top Surface Gradient - Vibrant Indigo/Cyan Land Layer */}
             <linearGradient id="bx-top-surface" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#4F46E5" />
-              <stop offset="50%" stopColor="#6366F1" />
+              <stop offset="45%" stopColor="#6366F1" />
               <stop offset="100%" stopColor="#06B6D4" />
             </linearGradient>
 
@@ -79,13 +80,20 @@ export const BhoomiXLogo: React.FC<BhoomiXLogoProps> = ({
               <stop offset="0%" stopColor="#10B981" />
               <stop offset="100%" stopColor="#3B82F6" />
             </linearGradient>
+
+            {/* Specular Glass Sheen */}
+            <linearGradient id="bx-glass-sheen" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.75" />
+              <stop offset="50%" stopColor="#FFFFFF" stopOpacity="0.1" />
+              <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
+            </linearGradient>
           </defs>
 
-          {/* Bottom Isometric Base Layer */}
+          {/* Bottom Isometric Base Layer Shadow */}
           <path
             d="M50 78 L18 60 L18 48 L50 66 L82 48 L82 60 Z"
             fill="#0F172A"
-            opacity="0.3"
+            opacity="0.25"
           />
 
           {/* Left Isometric 3D Extrusion */}
@@ -106,24 +114,30 @@ export const BhoomiXLogo: React.FC<BhoomiXLogoProps> = ({
             fill="url(#bx-top-surface)"
           />
 
+          {/* Top Glass Specular Refraction Overlay */}
+          <path
+            d="M50 20 L82 38 L50 42 L18 38 Z"
+            fill="url(#bx-glass-sheen)"
+          />
+
           {/* Cadastral Land Grid Lines on Top Surface */}
           <path
             d="M50 20 L50 56 M18 38 L82 38"
             stroke="white"
-            strokeWidth="1.8"
-            strokeOpacity="0.4"
+            strokeWidth="1.6"
+            strokeOpacity="0.45"
             strokeDasharray="2 2"
           />
 
           {/* 3D Geometric Floating Marker / Verified Pin */}
-          <circle cx="50" cy="38" r="6" fill="white" filter="drop-shadow(0px 2px 4px rgba(0,0,0,0.3))" />
-          <circle cx="50" cy="38" r="3.5" fill="url(#bx-accent-glow)" />
+          <circle cx="50" cy="38" r="6.5" fill="white" filter="drop-shadow(0px 3px 6px rgba(0,0,0,0.25))" />
+          <circle cx="50" cy="38" r="4" fill="url(#bx-accent-glow)" />
 
           {/* Modern Geometric 'X' Accent on the Corner */}
           <path
             d="M72 26 L78 32 M78 26 L72 32"
             stroke="#10B981"
-            strokeWidth="2"
+            strokeWidth="2.2"
             strokeLinecap="round"
           />
         </svg>
@@ -136,7 +150,7 @@ export const BhoomiXLogo: React.FC<BhoomiXLogoProps> = ({
             Bhoomi<span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-indigo-500 to-emerald-500">X</span>
           </span>
           {showBadge && (
-            <span className={`inline-flex items-center font-extrabold rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200/80 shadow-2xs ${current.badge}`}>
+            <span className={`inline-flex items-center font-bold rounded-full bg-white/80 text-indigo-700 border border-indigo-200/90 shadow-[0_2px_6px_rgba(79,70,229,0.08)] backdrop-blur-md ${current.badge}`}>
               {badgeText}
             </span>
           )}

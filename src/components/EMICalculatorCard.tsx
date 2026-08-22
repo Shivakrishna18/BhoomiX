@@ -111,66 +111,66 @@ export const EMICalculatorCard: React.FC<EMICalculatorCardProps> = ({ property }
   return (
     <div
       id="emi-calculator-card"
-      className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden transition-all"
+      className="liquid-glass-card rounded-3xl border border-white/90 shadow-[0_8px_30px_rgba(15,23,42,0.06)] overflow-hidden transition-all"
     >
       {/* Card Header */}
-      <div className="bg-gradient-to-r from-slate-900 to-indigo-950 text-white p-5 sm:p-6 flex items-center justify-between">
+      <div className="liquid-glass-dark text-white p-5 sm:p-7 flex items-center justify-between border-b border-slate-800">
         <div className="flex items-center space-x-3.5">
-          <div className="w-11 h-11 rounded-2xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center text-indigo-300 font-bold shrink-0 shadow-inner">
-            <Calculator className="w-5 h-5 text-indigo-400" />
+          <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center text-indigo-300 font-bold shrink-0 shadow-inner backdrop-blur-md">
+            <Calculator className="w-6 h-6 text-indigo-400" />
           </div>
           <div>
             <div className="flex items-center space-x-2">
-              <h3 className="text-base font-bold text-white tracking-tight">
+              <h3 className="text-base sm:text-lg font-extrabold text-white tracking-tight">
                 Interactive Land Loan & EMI Calculator
               </h3>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+              <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 backdrop-blur-md">
                 Live Estimates
               </span>
             </div>
-            <p className="text-xs text-slate-300 mt-0.5">
+            <p className="text-xs text-slate-400 mt-0.5">
               Estimate monthly payments, interest breakups, and initial upfront cash for this parcel
             </p>
           </div>
         </div>
       </div>
 
-      <div className="p-5 sm:p-6 space-y-6">
+      <div className="p-6 sm:p-8 space-y-6">
         {/* Top Summary Banner */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-4 rounded-2xl bg-indigo-50/80 border border-indigo-200/80 space-y-1">
+          <div className="p-5 rounded-2xl bg-indigo-50/70 backdrop-blur-md border border-indigo-200/80 space-y-1 shadow-2xs">
             <span className="text-[11px] font-bold text-indigo-900 uppercase tracking-wider">
               Estimated Monthly EMI
             </span>
             <div className="text-2xl sm:text-3xl font-black text-indigo-950 font-mono tracking-tight">
               {formatINR(monthlyEMI)}
-              <span className="text-xs font-semibold text-indigo-700 ml-1">/ month</span>
+              <span className="text-xs font-semibold text-indigo-700 ml-1">/ mo</span>
             </div>
-            <p className="text-[11px] text-indigo-800/80">
+            <p className="text-[11px] text-indigo-800/80 font-medium">
               For {tenureYears} years tenure @ {interestRate}% p.a.
             </p>
           </div>
 
-          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-1">
+          <div className="p-5 rounded-2xl bg-white/70 backdrop-blur-md border border-white/90 space-y-1 shadow-2xs">
             <span className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
               Loan Amount Required
             </span>
-            <div className="text-xl sm:text-2xl font-bold text-slate-900 font-mono">
+            <div className="text-xl sm:text-2xl font-black text-slate-900 font-mono tracking-tight">
               {formatINR(loanPrincipal)}
             </div>
-            <p className="text-[11px] text-slate-500">
+            <p className="text-[11px] text-slate-500 font-medium">
               {100 - downPaymentPercent}% of property asking price
             </p>
           </div>
 
-          <div className="p-4 rounded-2xl bg-emerald-50/80 border border-emerald-200/80 space-y-1">
+          <div className="p-5 rounded-2xl bg-emerald-50/70 backdrop-blur-md border border-emerald-200/80 space-y-1 shadow-2xs">
             <span className="text-[11px] font-bold text-emerald-900 uppercase tracking-wider">
               Total Upfront Cash Needed
             </span>
-            <div className="text-xl sm:text-2xl font-bold text-emerald-950 font-mono">
+            <div className="text-xl sm:text-2xl font-black text-emerald-950 font-mono tracking-tight">
               {formatINR(totalInitialUpfront)}
             </div>
-            <p className="text-[11px] text-emerald-800">
+            <p className="text-[11px] text-emerald-800 font-medium">
               Down payment {includeStampDuty ? '+ 7.5% Telangana Stamp Duty' : ''}
             </p>
           </div>
@@ -188,7 +188,7 @@ export const EMICalculatorCard: React.FC<EMICalculatorCardProps> = ({ property }
                   className="font-bold text-slate-800 flex items-center space-x-1.5"
                 >
                   <span>Down Payment</span>
-                  <span className="text-[11px] font-mono text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded-md border border-indigo-100">
+                  <span className="text-[11px] font-mono text-indigo-600 bg-indigo-50/90 px-2 py-0.5 rounded-full border border-indigo-100 font-bold">
                     {downPaymentPercent}% ({formatINR(downPaymentAmount)})
                   </span>
                 </label>
@@ -205,7 +205,7 @@ export const EMICalculatorCard: React.FC<EMICalculatorCardProps> = ({ property }
                       const val = Math.min(90, Math.max(10, Number(e.target.value) || 10));
                       setDownPaymentPercent(val);
                     }}
-                    className="w-14 p-1 text-xs text-right font-mono font-bold bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:outline-hidden"
+                    className="w-14 p-1 text-xs text-right font-mono font-bold bg-white/90 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-600 focus:outline-hidden"
                   />
                   <span className="text-xs text-slate-500 font-bold">%</span>
                 </div>
@@ -252,7 +252,7 @@ export const EMICalculatorCard: React.FC<EMICalculatorCardProps> = ({ property }
                       const val = Math.min(16, Math.max(6.5, Number(e.target.value) || 8.5));
                       setInterestRate(val);
                     }}
-                    className="w-16 p-1 text-xs text-right font-mono font-bold bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:outline-hidden"
+                    className="w-16 p-1 text-xs text-right font-mono font-bold bg-white/90 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-600 focus:outline-hidden"
                   />
                   <span className="text-xs text-slate-500 font-bold">%</span>
                 </div>
@@ -276,10 +276,10 @@ export const EMICalculatorCard: React.FC<EMICalculatorCardProps> = ({ property }
                     key={b.name}
                     type="button"
                     onClick={() => setInterestRate(b.rate)}
-                    className={`px-2 py-1 rounded-lg text-[11px] font-medium border transition-colors cursor-pointer ${
+                    className={`px-3 py-1 rounded-full text-[11px] font-semibold border transition-all spring-press cursor-pointer ${
                       interestRate === b.rate
-                        ? 'bg-indigo-600 text-white border-indigo-600 font-bold shadow-2xs'
-                        : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
+                        ? 'bg-indigo-600 text-white border-indigo-600 font-bold shadow-xs'
+                        : 'bg-white/70 backdrop-blur-md hover:bg-white text-slate-700 border-white/80'
                     }`}
                   >
                     {b.name} ({b.rate}%)
@@ -298,7 +298,7 @@ export const EMICalculatorCard: React.FC<EMICalculatorCardProps> = ({ property }
                   <Calendar className="w-3.5 h-3.5 text-indigo-600" />
                   <span>Loan Tenure ({tenureYears} Years / {totalMonths} Months)</span>
                 </label>
-                <span className="text-xs font-mono font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md">
+                <span className="text-xs font-mono font-bold text-slate-700 bg-white/80 border border-slate-200 px-2.5 py-0.5 rounded-full">
                   {tenureYears} Yrs
                 </span>
               </div>
@@ -320,10 +320,10 @@ export const EMICalculatorCard: React.FC<EMICalculatorCardProps> = ({ property }
                     key={yr}
                     type="button"
                     onClick={() => setTenureYears(yr)}
-                    className={`flex-1 py-1 rounded-lg text-[11px] font-semibold border transition-colors cursor-pointer text-center ${
+                    className={`flex-1 py-1 rounded-full text-[11px] font-semibold border transition-all spring-press cursor-pointer text-center ${
                       tenureYears === yr
-                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs'
-                        : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
+                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
+                        : 'bg-white/70 backdrop-blur-md hover:bg-white text-slate-700 border-white/80'
                     }`}
                   >
                     {yr} Yrs
@@ -333,8 +333,8 @@ export const EMICalculatorCard: React.FC<EMICalculatorCardProps> = ({ property }
             </div>
 
             {/* 4. Telangana Stamp Duty Toggle */}
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
-              <div className="flex items-center space-x-2 min-w-0">
+            <div className="p-4 bg-white/70 backdrop-blur-md rounded-2xl border border-white/90 flex items-center justify-between shadow-2xs">
+              <div className="flex items-center space-x-2.5 min-w-0">
                 <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
                 <label
                   htmlFor={stampDutyCheckboxId}
@@ -354,7 +354,7 @@ export const EMICalculatorCard: React.FC<EMICalculatorCardProps> = ({ property }
           </div>
 
           {/* Visual Breakdown & Payment Details */}
-          <div className="bg-slate-50/80 rounded-2xl border border-slate-200 p-5 flex flex-col justify-between space-y-5">
+          <div className="bg-white/70 backdrop-blur-md rounded-3xl border border-white/90 p-5 sm:p-6 flex flex-col justify-between space-y-5 shadow-2xs">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center space-x-1.5">
@@ -368,7 +368,7 @@ export const EMICalculatorCard: React.FC<EMICalculatorCardProps> = ({ property }
 
               {/* Progress Distribution Bar */}
               <div className="space-y-1.5">
-                <div className="h-4 w-full bg-slate-200 rounded-full overflow-hidden flex shadow-inner">
+                <div className="h-4 w-full bg-slate-200/80 rounded-full overflow-hidden flex shadow-inner">
                   <div
                     style={{ width: `${principalRatio}%` }}
                     className="bg-indigo-600 h-full transition-all duration-300"
@@ -400,24 +400,24 @@ export const EMICalculatorCard: React.FC<EMICalculatorCardProps> = ({ property }
               </div>
 
               {/* Income Eligibility Card */}
-              <div className="p-3.5 bg-white rounded-xl border border-slate-200/90 shadow-2xs space-y-1.5">
+              <div className="p-4 bg-white/90 rounded-2xl border border-white shadow-2xs space-y-1.5">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-slate-800 flex items-center space-x-1.5">
                     <Building2 className="w-4 h-4 text-emerald-600" />
                     <span>Recommended Minimum Monthly Income</span>
                   </span>
-                  <span className="text-xs font-bold text-emerald-700 font-mono bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                  <span className="text-xs font-bold text-emerald-700 font-mono bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
                     {formatINR(recommendedIncome)} / mo
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-500 leading-relaxed">
+                <p className="text-[11px] text-slate-500 leading-relaxed font-normal">
                   Based on banking standard 40% FOIR (Fixed Obligation to Income Ratio) for easy loan approval.
                 </p>
               </div>
 
               {/* Stamp duty breakup details if checked */}
               {includeStampDuty && (
-                <div className="p-3 bg-emerald-50/50 rounded-xl border border-emerald-200/80 text-[11px] text-emerald-950 space-y-1">
+                <div className="p-3.5 bg-emerald-50/70 backdrop-blur-md rounded-2xl border border-emerald-200/80 text-[11px] text-emerald-950 space-y-1">
                   <div className="flex justify-between font-semibold">
                     <span>Govt Stamp Duty & Registration (7.5%):</span>
                     <span className="font-mono font-bold">{formatINR(stampDutyAndRegistration)}</span>
@@ -434,7 +434,7 @@ export const EMICalculatorCard: React.FC<EMICalculatorCardProps> = ({ property }
               id="toggle-amortization-schedule-btn"
               type="button"
               onClick={() => setShowAmortization(!showAmortization)}
-              className="w-full py-2 px-3 bg-white hover:bg-slate-100 text-slate-800 rounded-xl border border-slate-200 text-xs font-bold flex items-center justify-center space-x-1.5 transition-colors cursor-pointer shadow-2xs"
+              className="w-full py-2.5 px-4 bg-white/90 hover:bg-white text-slate-800 rounded-full border border-slate-200 text-xs font-bold flex items-center justify-center space-x-1.5 transition-all spring-press cursor-pointer shadow-2xs"
             >
               <span>{showAmortization ? 'Hide Amortization Schedule' : 'View Yearly Amortization Schedule'}</span>
               {showAmortization ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -452,27 +452,27 @@ export const EMICalculatorCard: React.FC<EMICalculatorCardProps> = ({ property }
               <span className="text-[10px] text-slate-500">Currency in INR</span>
             </div>
 
-            <div className="overflow-x-auto border border-slate-200 rounded-xl">
+            <div className="overflow-x-auto border border-white/90 rounded-2xl bg-white/70 backdrop-blur-md shadow-2xs">
               <table className="w-full text-xs text-left">
-                <thead className="bg-slate-100 text-slate-700 font-bold border-b border-slate-200 text-[11px]">
+                <thead className="bg-slate-100/80 text-slate-700 font-bold border-b border-slate-200/80 text-[11px]">
                   <tr>
-                    <th className="py-2.5 px-3">Year</th>
-                    <th className="py-2.5 px-3">Principal Paid</th>
-                    <th className="py-2.5 px-3">Interest Paid</th>
-                    <th className="py-2.5 px-3">Total Annual Outflow</th>
-                    <th className="py-2.5 px-3">Remaining Loan Balance</th>
+                    <th className="py-2.5 px-3.5">Year</th>
+                    <th className="py-2.5 px-3.5">Principal Paid</th>
+                    <th className="py-2.5 px-3.5">Interest Paid</th>
+                    <th className="py-2.5 px-3.5">Total Annual Outflow</th>
+                    <th className="py-2.5 px-3.5">Remaining Loan Balance</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-slate-800 font-mono text-[11px]">
                   {getAmortizationSchedule().map((row) => (
-                    <tr key={row.year} className="hover:bg-slate-50 transition-colors">
-                      <td className="py-2 px-3 font-bold text-indigo-700">Year {row.year}</td>
-                      <td className="py-2 px-3 text-slate-900">{formatINR(row.principalPaid)}</td>
-                      <td className="py-2 px-3 text-amber-700">{formatINR(row.interestPaid)}</td>
-                      <td className="py-2 px-3 font-semibold text-slate-900">
+                    <tr key={row.year} className="hover:bg-white/80 transition-colors">
+                      <td className="py-2 px-3.5 font-bold text-indigo-700">Year {row.year}</td>
+                      <td className="py-2 px-3.5 text-slate-900">{formatINR(row.principalPaid)}</td>
+                      <td className="py-2 px-3.5 text-amber-700">{formatINR(row.interestPaid)}</td>
+                      <td className="py-2 px-3.5 font-semibold text-slate-900">
                         {formatINR(row.principalPaid + row.interestPaid)}
                       </td>
-                      <td className="py-2 px-3 text-slate-600">{formatINR(row.remainingBalance)}</td>
+                      <td className="py-2 px-3.5 text-slate-600">{formatINR(row.remainingBalance)}</td>
                     </tr>
                   ))}
                 </tbody>

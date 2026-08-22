@@ -168,12 +168,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs animate-in fade-in">
-      <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-200/80 overflow-hidden relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md animate-in fade-in">
+      <div className="liquid-glass-card bg-white/90 backdrop-blur-xl rounded-3xl max-w-md w-full shadow-[0_20px_60px_rgba(15,23,42,0.25)] border border-white/90 overflow-hidden relative">
         {/* Header */}
-        <div className="bg-slate-900 text-white px-6 py-5 flex items-center justify-between">
+        <div className="liquid-glass-dark text-white px-6 py-5 flex items-center justify-between border-b border-slate-800">
           <div>
-            <h3 className="text-lg font-bold tracking-tight">
+            <h3 className="text-lg font-extrabold tracking-tight text-white">
               {isSignUp ? 'Create your BhoomiX account' : 'Sign in to BhoomiX'}
             </h3>
             <p className="text-xs text-slate-400 mt-0.5">
@@ -182,15 +182,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-2 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="p-6 space-y-5 max-h-[85vh] overflow-y-auto">
+        <div className="p-6 sm:p-7 space-y-5 max-h-[85vh] overflow-y-auto">
           {error && (
-            <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs flex items-start space-x-2">
+            <div className="p-3.5 bg-rose-50/90 backdrop-blur-md border border-rose-200 text-rose-800 rounded-2xl text-xs flex items-start space-x-2.5 shadow-2xs">
               <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
               <span>{error}</span>
             </div>
@@ -199,30 +199,30 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           {/* Role selector */}
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-slate-700">Account Type / Role:</label>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-2.5">
               <button
                 type="button"
                 onClick={() => setRole('BUYER')}
-                className={`py-2.5 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center space-x-2 transition-all cursor-pointer ${
+                className={`py-3 px-3.5 rounded-2xl border text-xs font-bold flex items-center justify-center space-x-2 transition-all spring-press cursor-pointer ${
                   role === 'BUYER'
-                    ? 'border-indigo-600 bg-indigo-50 text-indigo-900 ring-1 ring-indigo-600'
-                    : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                    ? 'border-indigo-600 bg-indigo-600 text-white shadow-xs'
+                    : 'border-slate-200 bg-white/70 backdrop-blur-md text-slate-700 hover:bg-white'
                 }`}
               >
-                <User className="w-3.5 h-3.5 text-indigo-600" />
+                <User className={`w-3.5 h-3.5 ${role === 'BUYER' ? 'text-white' : 'text-indigo-600'}`} />
                 <span>Buyer / Investor</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setRole('SELLER')}
-                className={`py-2.5 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center space-x-2 transition-all cursor-pointer ${
+                className={`py-3 px-3.5 rounded-2xl border text-xs font-bold flex items-center justify-center space-x-2 transition-all spring-press cursor-pointer ${
                   role === 'SELLER'
-                    ? 'border-indigo-600 bg-indigo-50 text-indigo-900 ring-1 ring-indigo-600'
-                    : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                    ? 'border-indigo-600 bg-indigo-600 text-white shadow-xs'
+                    : 'border-slate-200 bg-white/70 backdrop-blur-md text-slate-700 hover:bg-white'
                 }`}
               >
-                <Building2 className="w-3.5 h-3.5 text-indigo-600" />
+                <Building2 className={`w-3.5 h-3.5 ${role === 'SELLER' ? 'text-white' : 'text-indigo-600'}`} />
                 <span>Pattadar / Seller</span>
               </button>
             </div>
@@ -233,7 +233,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             type="button"
             onClick={handleGoogleSignIn}
             disabled={loading}
-            className="w-full py-2.5 px-4 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-800 text-xs font-bold flex items-center justify-center space-x-2 transition-colors disabled:opacity-50 shadow-2xs cursor-pointer"
+            className="w-full py-3 px-4 rounded-full border border-slate-200 bg-white/80 backdrop-blur-md hover:bg-white text-slate-800 text-xs font-bold flex items-center justify-center space-x-2.5 transition-all spring-press disabled:opacity-50 shadow-2xs cursor-pointer"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24">
               <path
@@ -263,9 +263,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </div>
 
           {/* Email / Password Form */}
-          <form onSubmit={handleSubmit} className="space-y-3">
+          <form onSubmit={handleSubmit} className="space-y-3.5">
             {isSignUp && (
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-2.5">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">First Name</label>
                   <input
@@ -274,7 +274,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     placeholder="Rahul"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
-                    className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-hidden"
+                    className="w-full px-3.5 py-2.5 text-xs bg-white/80 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:outline-hidden"
                   />
                 </div>
                 <div>
@@ -285,7 +285,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     placeholder="Kumar"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
-                    className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-hidden"
+                    className="w-full px-3.5 py-2.5 text-xs bg-white/80 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:outline-hidden"
                   />
                 </div>
               </div>
@@ -294,14 +294,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">Email Address</label>
               <div className="relative">
-                <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
                 <input
                   type="email"
                   required
                   placeholder="name@domain.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-hidden"
+                  className="w-full pl-10 pr-3.5 py-2.5 text-xs bg-white/80 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:outline-hidden"
                 />
               </div>
             </div>
@@ -310,13 +310,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">Mobile / WhatsApp (+91)</label>
                 <div className="relative">
-                  <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                  <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
                   <input
                     type="tel"
                     placeholder="+91 98480 12345"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-hidden"
+                    className="w-full pl-10 pr-3.5 py-2.5 text-xs bg-white/80 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:outline-hidden font-mono"
                   />
                 </div>
               </div>
@@ -325,14 +325,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">Password</label>
               <div className="relative">
-                <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
                 <input
                   type="password"
                   required
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-hidden"
+                  className="w-full pl-10 pr-3.5 py-2.5 text-xs bg-white/80 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:outline-hidden"
                 />
               </div>
             </div>
@@ -340,7 +340,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs transition-colors disabled:opacity-50 cursor-pointer"
+              className="w-full py-3 px-4 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-md shadow-indigo-600/20 transition-all spring-press disabled:opacity-50 cursor-pointer"
             >
               {loading ? 'Processing...' : isSignUp ? 'Create BhoomiX Account' : 'Sign In'}
             </button>
@@ -361,22 +361,22 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </div>
 
           {/* Judge / 1-Click Test Personas */}
-          <div className="pt-3 border-t border-slate-200">
-            <div className="flex items-center space-x-1.5 text-slate-500 text-[11px] font-bold uppercase tracking-wider mb-2">
+          <div className="pt-3 border-t border-slate-200/80">
+            <div className="flex items-center space-x-1.5 text-slate-500 text-[11px] font-bold uppercase tracking-wider mb-2.5">
               <Sparkles className="w-3.5 h-3.5 text-amber-500" />
               <span>1-Click Test Personas</span>
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <button
                 type="button"
                 onClick={() => handleQuickPersonaLogin('SELLER_RAHUL')}
-                className="w-full text-left p-2.5 rounded-xl bg-slate-50 hover:bg-indigo-50/60 border border-slate-200 hover:border-indigo-300 transition-all flex items-center justify-between text-xs cursor-pointer"
+                className="w-full text-left p-3 rounded-2xl bg-white/70 backdrop-blur-md hover:bg-white border border-slate-200/80 hover:border-indigo-300 transition-all spring-press flex items-center justify-between text-xs cursor-pointer shadow-2xs"
               >
                 <div>
                   <p className="font-bold text-slate-900">Rahul Kumar (Seller / Pattadar)</p>
                   <p className="text-[11px] text-slate-500">seller.rahul@bhoomix.in • +91 98480 54321</p>
                 </div>
-                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                   Seller Portal
                 </span>
               </button>
@@ -384,13 +384,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <button
                 type="button"
                 onClick={() => handleQuickPersonaLogin('BUYER_SHIVA')}
-                className="w-full text-left p-2.5 rounded-xl bg-slate-50 hover:bg-indigo-50/60 border border-slate-200 hover:border-indigo-300 transition-all flex items-center justify-between text-xs cursor-pointer"
+                className="w-full text-left p-3 rounded-2xl bg-white/70 backdrop-blur-md hover:bg-white border border-slate-200/80 hover:border-indigo-300 transition-all spring-press flex items-center justify-between text-xs cursor-pointer shadow-2xs"
               >
                 <div>
                   <p className="font-bold text-slate-900">Shiva Krishna (Buyer / Investor)</p>
                   <p className="text-[11px] text-slate-500">buyer.shiva@bhoomix.in • +91 98490 12345</p>
                 </div>
-                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
                   Buyer Portal
                 </span>
               </button>

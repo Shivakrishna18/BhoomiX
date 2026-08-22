@@ -121,24 +121,24 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      {/* Top Search & Filter Bar */}
-      <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs space-y-4">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
+      {/* Top Search & Filter Bar - Spatial Liquid Glass Card */}
+      <div className="liquid-glass-card rounded-3xl p-5 sm:p-6 border border-white/90 shadow-[0_12px_32px_rgba(15,23,42,0.06)] space-y-4">
         <div className="flex flex-col md:flex-row items-center gap-3">
           {/* Query input */}
           <div className="relative flex-1 w-full">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+            <Search className="w-4 h-4 text-slate-400 absolute left-4 top-3.5" />
             <input
               type="text"
               placeholder="Search by corridor (Maheshwaram, Shamshabad, Mokila), Sy. No, or requirements..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 focus:outline-hidden"
+              className="w-full pl-11 pr-10 py-2.5 text-xs sm:text-sm bg-white/70 backdrop-blur-md border border-slate-200/80 rounded-full focus:ring-2 focus:ring-indigo-600 focus:bg-white focus:outline-hidden transition-all shadow-inner font-medium text-slate-900 placeholder:text-slate-400"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-3 text-slate-400 hover:text-slate-700"
+                className="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-700"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -150,7 +150,7 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
             <select
               value={selectedDistrict}
               onChange={(e) => setSelectedDistrict(e.target.value)}
-              className="w-full py-2.5 px-3 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-600 focus:outline-hidden bg-white text-slate-700 font-medium"
+              className="w-full py-2.5 px-4 text-xs border border-slate-200/80 rounded-full focus:ring-2 focus:ring-indigo-600 focus:outline-hidden bg-white/70 backdrop-blur-md text-slate-700 font-semibold cursor-pointer shadow-2xs"
             >
               <option value="all">All Telangana Districts</option>
               {districts.filter((d) => d !== 'all').map((dist) => (
@@ -162,11 +162,11 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
           </div>
 
           {/* Max Budget Slider */}
-          <div className="w-full md:w-64 px-2 space-y-1">
-            <div className="flex justify-between text-[11px] font-semibold text-slate-700">
+          <div className="w-full md:w-64 px-2 space-y-1.5 bg-white/50 p-2.5 rounded-2xl border border-white/80">
+            <div className="flex justify-between text-[11px] font-bold text-slate-700">
               <span>Budget Cap:</span>
-              <span className="text-indigo-600 font-bold font-mono">
-                {maxPriceCr >= 50 ? 'All Budgets (No Limit)' : `Up to ₹${maxPriceCr} Cr`}
+              <span className="text-indigo-600 font-mono">
+                {maxPriceCr >= 50 ? 'All (No Limit)' : `Up to ₹${maxPriceCr} Cr`}
               </span>
             </div>
             <input
@@ -176,22 +176,22 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
               step="1"
               value={maxPriceCr}
               onChange={(e) => setMaxPriceCr(parseFloat(e.target.value))}
-              className="w-full accent-indigo-600 cursor-pointer h-1.5 bg-slate-200 rounded-lg"
+              className="w-full accent-indigo-600 cursor-pointer h-1.5 bg-slate-200 rounded-full"
             />
           </div>
         </div>
 
         {/* Purpose Pills & Toggles */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100">
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-200/60">
           <div className="flex flex-wrap gap-1.5">
             {purposes.map((p) => (
               <button
                 key={p.id}
                 onClick={() => setSelectedPurpose(p.id)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all spring-press cursor-pointer ${
                   selectedPurpose === p.id
-                    ? 'bg-indigo-600 text-white shadow-xs'
-                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                    ? 'bg-indigo-600 text-white shadow-[0_4px_12px_rgba(79,70,229,0.25)]'
+                    : 'liquid-glass-pill text-slate-700 hover:bg-white'
                 }`}
               >
                 {p.label}
@@ -200,30 +200,30 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
           </div>
 
           <div className="flex items-center space-x-3 text-xs">
-            <label className="flex items-center space-x-1.5 cursor-pointer select-none text-slate-700 font-semibold">
+            <label className="flex items-center space-x-2 cursor-pointer select-none text-slate-700 font-bold px-3 py-1.5 rounded-full liquid-glass-pill">
               <input
                 type="checkbox"
                 checked={verifiedOnly}
                 onChange={(e) => setVerifiedOnly(e.target.checked)}
-                className="rounded text-indigo-600 focus:ring-indigo-600 h-4 w-4"
+                className="rounded-sm text-indigo-600 focus:ring-indigo-600 h-4 w-4"
               />
               <span>Dharani Verified Only</span>
             </label>
 
             {/* Layout Toggle */}
-            <div className="bg-slate-100 p-1 rounded-xl flex space-x-1">
+            <div className="bg-slate-200/60 p-1 rounded-full flex space-x-1 border border-white/80">
               <button
                 onClick={() => setViewLayout('grid')}
-                className={`px-2.5 py-1 rounded-lg text-xs font-bold ${
-                  viewLayout === 'grid' ? 'bg-white shadow-xs text-slate-900' : 'text-slate-500'
+                className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                  viewLayout === 'grid' ? 'bg-white shadow-xs text-slate-900' : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
                 Grid
               </button>
               <button
                 onClick={() => setViewLayout('split_map')}
-                className={`px-2.5 py-1 rounded-lg text-xs font-bold flex items-center space-x-1 ${
-                  viewLayout === 'split_map' ? 'bg-white shadow-xs text-slate-900' : 'text-slate-500'
+                className={`px-3 py-1 rounded-full text-xs font-bold flex items-center space-x-1 transition-all cursor-pointer ${
+                  viewLayout === 'split_map' ? 'bg-white shadow-xs text-slate-900' : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
                 <Compass className="w-3.5 h-3.5 text-indigo-600" />
@@ -235,9 +235,9 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
       </div>
 
       {/* Results Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-xs text-slate-600 font-medium">
-          Showing <span className="font-bold text-slate-900">{filteredProperties.length}</span> direct land listings in Telangana
+      <div className="flex flex-wrap items-center justify-between gap-3 px-1">
+        <p className="text-xs text-slate-600 font-semibold">
+          Showing <span className="font-extrabold text-slate-900">{filteredProperties.length}</span> direct land listings in Telangana
         </p>
 
         <div className="flex items-center space-x-2 text-xs">
@@ -245,7 +245,7 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as any)}
-            className="py-1 px-2.5 text-xs border border-slate-200 rounded-lg bg-white text-slate-700 font-medium focus:outline-hidden"
+            className="py-1.5 px-3 text-xs border border-white/90 rounded-full liquid-glass text-slate-700 font-bold focus:outline-hidden shadow-2xs cursor-pointer"
           >
             <option value="recommended">BhoomiX Trust Rating</option>
             <option value="price_asc">Price: Low to High</option>
@@ -258,7 +258,7 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
       {/* Layout: Split Map or Pure Grid */}
       {viewLayout === 'split_map' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-5 h-[520px] sticky top-24">
+          <div className="lg:col-span-5 h-[520px] sticky top-24 rounded-3xl overflow-hidden shadow-lg border border-white/90">
             <MapPlotViewer
               allProperties={filteredProperties}
               onSelectProperty={onSelectProperty}
@@ -284,7 +284,7 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
       {viewLayout === 'grid' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProperties.length === 0 ? (
-            <div className="col-span-full py-16 text-center space-y-3 bg-white rounded-2xl border border-slate-200/80 p-8 shadow-xs">
+            <div className="col-span-full py-16 text-center space-y-3 liquid-glass-card rounded-3xl border border-white/90 p-8 shadow-xs">
               <Compass className="w-10 h-10 text-slate-400 mx-auto" />
               <h3 className="text-base font-bold text-slate-900">No properties match your current filters</h3>
               <p className="text-xs text-slate-500 max-w-sm mx-auto">
@@ -294,11 +294,11 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
                 onClick={() => {
                   setSelectedPurpose('all');
                   setSelectedDistrict('all');
-                  setMaxPriceCr(15);
+                  setMaxPriceCr(50);
                   setSearchQuery('');
                   setVerifiedOnly(false);
                 }}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 shadow-xs"
+                className="px-5 py-2.5 bg-indigo-600 text-white rounded-full text-xs font-bold hover:bg-indigo-700 shadow-md spring-press cursor-pointer"
               >
                 Reset All Filters
               </button>
@@ -319,18 +319,18 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
         </div>
       )}
 
-      {/* Floating Comparison Drawer / Button */}
+      {/* Floating Comparison Drawer / Button - VisionOS Style Glass Bar */}
       {compareList.length > 0 && (
-        <div className="fixed bottom-6 right-6 z-40 bg-slate-900 text-white p-3.5 rounded-2xl shadow-2xl border border-slate-700 flex items-center space-x-4 animate-in slide-in-from-bottom">
+        <div className="fixed bottom-6 right-6 z-40 liquid-glass-dark text-white p-3.5 px-5 rounded-full shadow-[0_20px_50px_rgba(15,23,42,0.3)] border border-slate-700/80 flex items-center space-x-4 animate-in slide-in-from-bottom">
           <div className="flex items-center space-x-2">
-            <Scale className="w-5 h-5 text-indigo-400" />
+            <Scale className="w-4 h-4 text-indigo-400" />
             <span className="text-xs font-bold font-mono">
               {compareList.length} / 4 Land Parcels Selected
             </span>
           </div>
           <button
             onClick={onOpenCompareModal}
-            className="px-4 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs transition-colors"
+            className="px-4 py-1.5 rounded-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white text-xs font-bold shadow-md transition-all spring-press cursor-pointer"
           >
             Compare Side-by-Side
           </button>
@@ -357,10 +357,10 @@ const PropertyCardGrid: React.FC<{
   };
 
   return (
-    <div className="group bg-white rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col justify-between hover:border-indigo-300">
+    <div className="group liquid-glass-card rounded-3xl border border-white/90 shadow-[0_8px_24px_rgba(15,23,42,0.06)] hover:shadow-[0_20px_40px_-10px_rgba(79,70,229,0.15)] transition-all duration-300 overflow-hidden flex flex-col justify-between hover:-translate-y-1">
       <div>
         {/* Photo Container */}
-        <div className="relative h-48 w-full bg-slate-100 overflow-hidden cursor-pointer" onClick={onSelect}>
+        <div className="relative h-52 w-full bg-slate-100 overflow-hidden cursor-pointer" onClick={onSelect}>
           <img
             src={
               property.coverPhoto ||
@@ -369,29 +369,29 @@ const PropertyCardGrid: React.FC<{
             }
             alt={property.title}
             referrerPolicy="no-referrer"
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
           />
 
           {/* Top Badges */}
-          <div className="absolute top-2.5 left-2.5 flex flex-wrap gap-1.5">
-            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-900/80 backdrop-blur-md text-white capitalize">
+          <div className="absolute top-3.5 left-3.5 flex flex-wrap gap-1.5">
+            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-900/80 backdrop-blur-md text-white capitalize shadow-xs">
               {property.purpose}
             </span>
-            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-600/90 backdrop-blur-md text-white flex items-center space-x-1 shadow-xs">
+            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-600/90 backdrop-blur-md text-white flex items-center space-x-1 shadow-xs">
               <ShieldCheck className="w-3 h-3 text-emerald-200" />
               <span>{property.documentVerifiedPercentage || 96}% Verified</span>
             </span>
           </div>
 
           {/* Action Icons Top Right */}
-          <div className="absolute top-2.5 right-2.5 flex space-x-1.5 items-center">
+          <div className="absolute top-3.5 right-3.5 flex space-x-1.5 items-center">
             <button
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 onToggleSave();
               }}
-              className={`p-1.5 px-2 rounded-lg backdrop-blur-md transition-all flex items-center space-x-1 ${
+              className={`p-1.5 px-2.5 rounded-full backdrop-blur-md transition-all flex items-center space-x-1 spring-press cursor-pointer ${
                 isSaved
                   ? 'bg-rose-600 text-white font-bold shadow-xs'
                   : 'bg-slate-900/70 text-white hover:bg-slate-900 hover:text-rose-300'
@@ -407,8 +407,8 @@ const PropertyCardGrid: React.FC<{
                 e.stopPropagation();
                 onToggleCompare();
               }}
-              className={`p-1.5 rounded-lg backdrop-blur-md transition-colors ${
-                isCompared ? 'bg-amber-600 text-white' : 'bg-slate-900/60 text-white hover:bg-slate-900'
+              className={`p-1.5 px-2 rounded-full backdrop-blur-md transition-colors spring-press cursor-pointer ${
+                isCompared ? 'bg-amber-600 text-white shadow-xs' : 'bg-slate-900/60 text-white hover:bg-slate-900'
               }`}
               title="Add to Comparison"
             >
@@ -417,34 +417,34 @@ const PropertyCardGrid: React.FC<{
           </div>
 
           {/* Bottom Overlay Info */}
-          <div className="absolute bottom-2.5 left-2.5 right-2.5 flex justify-between items-center text-[10px] font-semibold text-white">
-            <span className="px-2 py-0.5 rounded-md bg-slate-950/80 backdrop-blur-md">
+          <div className="absolute bottom-3.5 left-3.5 right-3.5 flex justify-between items-center text-[10px] font-bold text-white">
+            <span className="px-2.5 py-1 rounded-full bg-slate-950/80 backdrop-blur-md shadow-xs">
               {property.surveyNumber || 'Sy. Verified'}
             </span>
-            <span className="px-2 py-0.5 rounded-md bg-slate-950/80 backdrop-blur-md">
+            <span className="px-2.5 py-1 rounded-full bg-slate-950/80 backdrop-blur-md shadow-xs">
               {property.landSize} {property.landUnit}
             </span>
           </div>
         </div>
 
         {/* Content */}
-        <div className="p-4 space-y-3 cursor-pointer" onClick={onSelect}>
-          <div className="flex items-center space-x-1.5 text-xs font-semibold text-indigo-600">
+        <div className="p-5 space-y-3 cursor-pointer" onClick={onSelect}>
+          <div className="flex items-center space-x-1.5 text-xs font-bold text-indigo-600">
             <MapPin className="w-3.5 h-3.5 shrink-0" />
             <span className="truncate">{property.locality}, {property.district}</span>
           </div>
 
-          <h3 className="font-bold text-xs sm:text-sm text-slate-900 line-clamp-2 leading-snug">
+          <h3 className="font-bold text-base text-slate-900 line-clamp-2 leading-snug group-hover:text-indigo-600 transition-colors">
             {property.title}
           </h3>
 
-          <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
+          <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed font-normal">
             {property.description}
           </p>
 
           {/* Road Frontage Tag */}
           {property.roadFacing && (
-            <div className="text-[11px] text-slate-600 bg-slate-50 px-2 py-1 rounded-md border border-slate-200 truncate font-medium">
+            <div className="text-[11px] text-slate-700 bg-white/70 px-3 py-1 rounded-full border border-slate-200/80 truncate font-semibold">
               🛣️ Frontage: {property.roadFacing}
             </div>
           )}
@@ -452,17 +452,17 @@ const PropertyCardGrid: React.FC<{
       </div>
 
       {/* Card Footer */}
-      <div className="p-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+      <div className="p-5 pt-3.5 border-t border-slate-100/80 flex items-center justify-between">
         <div>
-          <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Asking Price</span>
-          <p className="text-sm sm:text-base font-bold text-slate-900">
+          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Asking Price</span>
+          <p className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
             {formatINR(property.askingPrice)}
           </p>
         </div>
 
         <button
           onClick={onSelect}
-          className="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold transition-colors shadow-2xs"
+          className="px-4 py-2 rounded-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white text-xs font-bold transition-all shadow-[0_4px_12px_rgba(79,70,229,0.22)] spring-press cursor-pointer"
         >
           View Details
         </button>
@@ -490,7 +490,7 @@ const PropertyCardHorizontal: React.FC<{
   return (
     <div
       onClick={onSelect}
-      className="bg-white rounded-xl border border-slate-200/80 p-3 hover:border-indigo-300 hover:shadow-md transition-all flex gap-3 cursor-pointer"
+      className="liquid-glass-card rounded-2xl border border-white/90 p-3.5 hover:shadow-lg transition-all flex gap-3.5 cursor-pointer spring-press hover:-translate-y-0.5"
     >
       <img
         src={
@@ -500,23 +500,23 @@ const PropertyCardHorizontal: React.FC<{
         }
         alt={property.title}
         referrerPolicy="no-referrer"
-        className="w-28 h-28 object-cover rounded-lg shrink-0"
+        className="w-28 h-28 object-cover rounded-xl shrink-0"
       />
       <div className="flex-1 flex flex-col justify-between">
         <div>
-          <div className="flex items-center justify-between text-[11px] text-indigo-600 font-semibold mb-1">
+          <div className="flex items-center justify-between text-[11px] text-indigo-600 font-bold mb-1">
             <div className="flex items-center space-x-1.5">
               <span>{property.locality}</span>
-              <span className="px-1.5 py-0.2 rounded-md bg-emerald-50 text-emerald-700 font-bold text-[9px] border border-emerald-200">
+              <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold text-[9px] border border-emerald-200">
                 {property.documentVerifiedPercentage || 96}% Verified
               </span>
             </div>
-            <span className="font-bold text-slate-900 text-xs">{formatINR(property.askingPrice)}</span>
+            <span className="font-black text-slate-900 text-xs tracking-tight">{formatINR(property.askingPrice)}</span>
           </div>
           <h4 className="text-xs font-bold text-slate-900 line-clamp-1">{property.title}</h4>
           <p className="text-[11px] text-slate-500 line-clamp-1 mt-0.5">{property.roadFacing || property.description}</p>
         </div>
-        <div className="flex items-center justify-between text-[10px] text-slate-500 pt-2 border-t border-slate-100 font-medium">
+        <div className="flex items-center justify-between text-[10px] text-slate-500 pt-2 border-t border-slate-100/80 font-semibold">
           <span>{property.landSize} {property.landUnit}</span>
           <div className="flex items-center space-x-1.5">
             <button
@@ -525,10 +525,10 @@ const PropertyCardHorizontal: React.FC<{
                 e.stopPropagation();
                 onToggleSave();
               }}
-              className={`p-1 px-2 rounded-md transition-all flex items-center space-x-1 ${
+              className={`p-1 px-2.5 rounded-full transition-all flex items-center space-x-1 spring-press ${
                 isSaved
                   ? 'bg-rose-600 text-white font-bold'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  : 'bg-white/80 text-slate-700 hover:bg-white border border-slate-200/80'
               }`}
               title={isSaved ? 'Remove from Wishlist' : 'Save to Wishlist'}
             >
@@ -541,10 +541,10 @@ const PropertyCardHorizontal: React.FC<{
                 e.stopPropagation();
                 onToggleCompare();
               }}
-              className={`p-1 px-1.5 rounded-md transition-all ${
+              className={`p-1 px-2 rounded-full transition-all spring-press ${
                 isCompared
                   ? 'bg-amber-600 text-white'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  : 'bg-white/80 text-slate-700 hover:bg-white border border-slate-200/80'
               }`}
               title="Compare"
             >

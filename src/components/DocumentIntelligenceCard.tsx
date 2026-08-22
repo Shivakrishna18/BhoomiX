@@ -96,20 +96,20 @@ export const DocumentIntelligenceCard: React.FC<DocumentIntelligenceCardProps> =
   };
 
   return (
-    <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6 space-y-6">
+    <div className="liquid-glass-card rounded-3xl border border-white/90 shadow-[0_8px_30px_rgba(15,23,42,0.06)] p-6 sm:p-8 space-y-6">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-100">
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-5 border-b border-slate-200/60">
         <div>
           <div className="flex items-center space-x-2">
-            <h3 className="text-base font-bold text-slate-900">
+            <h3 className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight">
               Document Trust & Legal Verification
             </h3>
-            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-800 border border-emerald-300/60 backdrop-blur-md">
               <ShieldCheck className="w-3.5 h-3.5 mr-1 text-emerald-600" />
               {documents.length > 0 ? 'Verified Repository' : 'Revenue Record Verification'}
             </span>
           </div>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-slate-500 mt-0.5 font-normal">
             Dharani digital passbook, 30-year EC & cadastral survey records
           </p>
         </div>
@@ -117,7 +117,7 @@ export const DocumentIntelligenceCard: React.FC<DocumentIntelligenceCardProps> =
         {isSeller && (
           <button
             onClick={() => setUploadModalOpen(true)}
-            className="px-3.5 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white flex items-center space-x-1.5 shadow-xs transition-colors cursor-pointer"
+            className="px-4 py-2 rounded-full text-xs font-bold bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white flex items-center space-x-1.5 shadow-md transition-all spring-press cursor-pointer"
           >
             <Upload className="w-3.5 h-3.5" />
             <span>Upload Document</span>
@@ -131,14 +131,14 @@ export const DocumentIntelligenceCard: React.FC<DocumentIntelligenceCardProps> =
           property.verificationBadges.map((badge, idx) => (
             <span
               key={idx}
-              className="inline-flex items-center px-3 py-1 rounded-xl text-xs font-medium bg-slate-50 text-slate-700 border border-slate-200/80 shadow-2xs"
+              className="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white/70 backdrop-blur-md text-slate-800 border border-white/90 shadow-2xs"
             >
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 mr-1.5 shrink-0" />
               <span>{badge}</span>
             </span>
           ))
         ) : (
-          <span className="inline-flex items-center px-3 py-1 rounded-xl text-xs font-medium bg-slate-50 text-slate-700 border border-slate-200/80 shadow-2xs">
+          <span className="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white/70 backdrop-blur-md text-slate-800 border border-white/90 shadow-2xs">
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 mr-1.5 shrink-0" />
             <span>Direct Pattadar Landowner</span>
           </span>
@@ -149,9 +149,9 @@ export const DocumentIntelligenceCard: React.FC<DocumentIntelligenceCardProps> =
       {loading ? (
         <div className="py-6 text-center text-xs text-slate-500 font-medium">Checking verified records...</div>
       ) : documents.length === 0 ? (
-        <div className="p-6 text-center text-xs text-slate-500 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-2">
-          <div className="w-10 h-10 rounded-2xl bg-white border border-slate-200 flex items-center justify-center mx-auto text-slate-400 shadow-2xs">
-            <Clock className="w-5 h-5 text-indigo-500" />
+        <div className="p-6 text-center text-xs text-slate-500 bg-white/60 backdrop-blur-md rounded-3xl border border-white/80 space-y-2 shadow-2xs">
+          <div className="w-12 h-12 rounded-2xl bg-white border border-slate-200/80 flex items-center justify-center mx-auto text-slate-400 shadow-2xs">
+            <Clock className="w-6 h-6 text-indigo-500" />
           </div>
           <p className="font-bold text-slate-800">No public documents uploaded yet for this parcel.</p>
           <p className="text-[11px] text-slate-500 max-w-md mx-auto">
@@ -160,7 +160,7 @@ export const DocumentIntelligenceCard: React.FC<DocumentIntelligenceCardProps> =
           {isSeller && (
             <button
               onClick={() => setUploadModalOpen(true)}
-              className="mt-2 inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-bold shadow-xs cursor-pointer"
+              className="mt-2 inline-flex items-center space-x-1.5 px-4 py-2 rounded-full bg-indigo-600 text-white text-xs font-bold shadow-md spring-press cursor-pointer"
             >
               <Upload className="w-3.5 h-3.5" />
               <span>Upload Dharani Passbook / Revenue Document</span>
@@ -176,18 +176,18 @@ export const DocumentIntelligenceCard: React.FC<DocumentIntelligenceCardProps> =
             return (
               <div
                 key={docItem.id}
-                className="border border-slate-200/80 rounded-2xl overflow-hidden bg-slate-50/50 hover:bg-slate-50 transition-colors shadow-2xs"
+                className="border border-white/90 rounded-2xl overflow-hidden bg-white/70 backdrop-blur-md hover:bg-white/90 transition-all shadow-2xs"
               >
                 <div
                   onClick={() => setExpandedDocId(isExpanded ? null : docItem.id)}
                   className="p-4 flex items-center justify-between cursor-pointer"
                 >
                   <div className="flex items-center space-x-3">
-                    <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-100 shadow-2xs">
+                    <div className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-100 shadow-2xs">
                       <FileText className="w-5 h-5" />
                     </div>
                     <div>
-                      <h4 className="text-xs font-bold text-slate-900">{docItem.fileName.replace(/_/g, ' ').replace('.pdf', '')}</h4>
+                      <h4 className="text-xs sm:text-sm font-bold text-slate-900">{docItem.fileName.replace(/_/g, ' ').replace('.pdf', '')}</h4>
                       <p className="text-[11px] text-slate-500 font-mono">
                         {docItem.documentType} • {docItem.fileName}
                       </p>
@@ -196,12 +196,12 @@ export const DocumentIntelligenceCard: React.FC<DocumentIntelligenceCardProps> =
 
                   <div className="flex items-center space-x-2">
                     {docItem.analysisSummary ? (
-                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
                         <CheckCircle2 className="w-3 h-3 mr-1 text-emerald-600" />
                         AI Verified ({docItem.analysisSummary.confidenceScore}%)
                       </span>
                     ) : (
-                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-200 text-slate-700">
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold bg-slate-200 text-slate-700">
                         Pending
                       </span>
                     )}
@@ -216,7 +216,7 @@ export const DocumentIntelligenceCard: React.FC<DocumentIntelligenceCardProps> =
 
                 {/* Expanded Details / AI Intelligence */}
                 {isExpanded && (
-                  <div className="p-4 border-t border-slate-200/80 bg-white space-y-4">
+                  <div className="p-5 border-t border-slate-200/60 bg-white/90 space-y-4">
                     {docItem.analysisSummary ? (
                       <div className="space-y-3">
                         {/* Extracted Record Fields */}
@@ -242,12 +242,12 @@ export const DocumentIntelligenceCard: React.FC<DocumentIntelligenceCardProps> =
                         </div>
 
                         {/* Summary */}
-                        <div className="text-xs text-slate-700 leading-relaxed bg-indigo-50/50 p-3.5 rounded-2xl border border-indigo-100">
+                        <div className="text-xs text-slate-700 leading-relaxed bg-indigo-50/70 p-4 rounded-2xl border border-indigo-100/80">
                           <p className="font-bold text-indigo-950 mb-1 flex items-center space-x-1.5">
                             <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
                             <span>AI Intelligence Analysis</span>
                           </p>
-                          <p>{docItem.analysisSummary.summary}</p>
+                          <p className="font-normal">{docItem.analysisSummary.summary}</p>
                         </div>
 
                         {/* Consistency Checks */}
@@ -290,7 +290,7 @@ export const DocumentIntelligenceCard: React.FC<DocumentIntelligenceCardProps> =
                         <button
                           onClick={() => handleTriggerAnalysis(docItem)}
                           disabled={isAnalyzing}
-                          className="px-4 py-2.5 rounded-xl text-xs font-bold bg-indigo-600 text-white hover:bg-indigo-700 transition-colors disabled:opacity-50 inline-flex items-center space-x-2 shadow-xs cursor-pointer"
+                          className="px-5 py-2.5 rounded-full text-xs font-bold bg-indigo-600 text-white hover:bg-indigo-700 transition-colors disabled:opacity-50 inline-flex items-center space-x-2 shadow-md spring-press cursor-pointer"
                         >
                           {isAnalyzing ? (
                             <>
@@ -316,9 +316,9 @@ export const DocumentIntelligenceCard: React.FC<DocumentIntelligenceCardProps> =
 
       {/* Upload Document Modal */}
       {uploadModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200/80 space-y-4">
-            <h3 className="text-base font-bold text-slate-900">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
+          <div className="liquid-glass-card bg-white/95 rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-white/90 space-y-4">
+            <h3 className="text-base sm:text-lg font-extrabold text-slate-900">
               Upload Legal Land Document
             </h3>
             <form onSubmit={handleUploadDocument} className="space-y-3">
@@ -327,7 +327,7 @@ export const DocumentIntelligenceCard: React.FC<DocumentIntelligenceCardProps> =
                 <select
                   value={selectedDocType}
                   onChange={(e) => setSelectedDocType(e.target.value)}
-                  className="w-full p-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-hidden"
+                  className="w-full p-2.5 text-xs border border-slate-200/80 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:outline-hidden bg-white"
                 >
                   <option value="Dharani Digital Pattadar Passbook">Dharani Digital Pattadar Passbook</option>
                   <option value="Encumbrance Certificate (EC)">Encumbrance Certificate (EC)</option>
@@ -346,7 +346,7 @@ export const DocumentIntelligenceCard: React.FC<DocumentIntelligenceCardProps> =
                   placeholder="e.g. 2024 Dharani e-Passbook"
                   value={docTitle}
                   onChange={(e) => setDocTitle(e.target.value)}
-                  className="w-full p-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-hidden"
+                  className="w-full p-2.5 text-xs border border-slate-200/80 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:outline-hidden"
                 />
               </div>
 
@@ -357,7 +357,7 @@ export const DocumentIntelligenceCard: React.FC<DocumentIntelligenceCardProps> =
                   placeholder="Paste OCR text or specific survey comments..."
                   value={docNotes}
                   onChange={(e) => setDocNotes(e.target.value)}
-                  className="w-full p-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-hidden"
+                  className="w-full p-2.5 text-xs border border-slate-200/80 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:outline-hidden"
                 />
               </div>
 
@@ -365,13 +365,13 @@ export const DocumentIntelligenceCard: React.FC<DocumentIntelligenceCardProps> =
                 <button
                   type="button"
                   onClick={() => setUploadModalOpen(false)}
-                  className="flex-1 py-2.5 text-xs font-bold border border-slate-200 rounded-xl hover:bg-slate-50 text-slate-700 transition-colors cursor-pointer"
+                  className="flex-1 py-2.5 text-xs font-bold liquid-glass rounded-full hover:bg-white text-slate-700 transition-all spring-press cursor-pointer border border-slate-200"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 text-xs font-bold bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors shadow-xs cursor-pointer"
+                  className="flex-1 py-2.5 text-xs font-bold bg-indigo-600 text-white rounded-full hover:bg-indigo-700 transition-all shadow-md spring-press cursor-pointer"
                 >
                   Save & Analyze
                 </button>

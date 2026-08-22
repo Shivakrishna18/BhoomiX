@@ -49,16 +49,16 @@ export const BuyerDashboardView: React.FC<BuyerDashboardViewProps> = ({
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* User Greeting Banner */}
-      <div className="bg-slate-900 rounded-3xl p-6 sm:p-8 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 border border-slate-800 shadow-sm">
-        <div className="space-y-2">
-          <div className="flex items-center space-x-2">
-            <h1 className="text-xl sm:text-2xl font-bold">Buyer Command Hub</h1>
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-600/80 text-indigo-100">
+      <div className="liquid-glass-dark rounded-3xl p-6 sm:p-8 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 border border-slate-800 shadow-[0_20px_50px_rgba(15,23,42,0.25)] relative overflow-hidden">
+        <div className="space-y-2 relative z-10">
+          <div className="flex items-center space-x-3">
+            <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">Buyer Command Hub</h1>
+            <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 backdrop-blur-md">
               Verified Buyer Account
             </span>
           </div>
-          <p className="text-xs sm:text-sm text-slate-400 max-w-2xl">
-            Welcome back, <span className="font-semibold text-slate-200">{currentUser.displayName}</span>. Monitor your bookmarked land parcels, direct owner conversations, and confirmed physical site inspections.
+          <p className="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
+            Welcome back, <span className="font-bold text-white">{currentUser.displayName}</span>. Monitor your bookmarked land parcels, direct owner conversations, and confirmed physical site inspections.
           </p>
           {currentUser.phone ? (
             <p className="text-xs text-emerald-400 font-mono flex items-center space-x-1.5 pt-1">
@@ -71,11 +71,11 @@ export const BuyerDashboardView: React.FC<BuyerDashboardViewProps> = ({
           )}
         </div>
 
-        <div className="flex items-center space-x-3 shrink-0">
+        <div className="flex items-center space-x-3 shrink-0 relative z-10">
           {onOpenProfileModal && (
             <button
               onClick={onOpenProfileModal}
-              className="px-4 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs sm:text-sm font-semibold flex items-center space-x-2 border border-slate-700 transition-all cursor-pointer"
+              className="px-4 py-3 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs sm:text-sm font-bold flex items-center space-x-2 border border-white/20 backdrop-blur-md transition-all spring-press cursor-pointer"
             >
               <Settings className="w-4 h-4 text-slate-300" />
               <span>Edit Profile & Phone</span>
@@ -84,7 +84,7 @@ export const BuyerDashboardView: React.FC<BuyerDashboardViewProps> = ({
 
           <button
             onClick={() => onNavigateTab('recommendations')}
-            className="px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold flex items-center space-x-2 shadow-xs transition-all shrink-0 cursor-pointer"
+            className="px-5 py-3 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold flex items-center space-x-2 shadow-lg shadow-indigo-600/30 transition-all spring-press shrink-0 cursor-pointer"
           >
             <Sparkles className="w-4 h-4 text-amber-300" />
             <span>Open AI Matchmaker</span>
@@ -93,32 +93,32 @@ export const BuyerDashboardView: React.FC<BuyerDashboardViewProps> = ({
       </div>
 
       {/* Metrics Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs">
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        <div className="liquid-glass-card hover-card-glass p-6 rounded-3xl border border-white/80 shadow-sm">
+          <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">
             Saved Properties
           </span>
-          <p className="text-2xl font-bold text-slate-900 mt-1 font-mono">
+          <p className="text-3xl font-extrabold text-slate-900 mt-1 font-mono tracking-tight">
             {savedProperties.length}
           </p>
           <p className="text-xs text-slate-500 font-medium mt-1">Bookmarked for evaluation</p>
         </div>
 
-        <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs">
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+        <div className="liquid-glass-card hover-card-glass p-6 rounded-3xl border border-white/80 shadow-sm">
+          <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">
             Active Seller Conversations
           </span>
-          <p className="text-2xl font-bold text-slate-900 mt-1 font-mono">
+          <p className="text-3xl font-extrabold text-slate-900 mt-1 font-mono tracking-tight">
             {conversations.length}
           </p>
           <p className="text-xs text-slate-500 font-medium mt-1">Direct inquiries</p>
         </div>
 
-        <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs">
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+        <div className="liquid-glass-card hover-card-glass p-6 rounded-3xl border border-white/80 shadow-sm">
+          <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">
             Site Visits Scheduled
           </span>
-          <p className="text-2xl font-bold text-indigo-600 mt-1 font-mono">
+          <p className="text-3xl font-extrabold text-indigo-600 mt-1 font-mono tracking-tight">
             {siteVisits.length}
           </p>
           <p className="text-xs text-slate-500 font-medium mt-1">Physical inspections</p>
@@ -126,13 +126,13 @@ export const BuyerDashboardView: React.FC<BuyerDashboardViewProps> = ({
       </div>
 
       {/* Tabs Header */}
-      <div className="flex border-b border-slate-200 space-x-4">
+      <div className="flex bg-slate-200/50 p-1.5 rounded-full backdrop-blur-md max-w-fit space-x-1 border border-slate-200/60">
         <button
           onClick={() => setActiveSubTab('saved')}
-          className={`pb-3 text-xs font-bold transition-all border-b-2 flex items-center space-x-2 ${
+          className={`py-2 px-4 rounded-full text-xs font-bold transition-all spring-press flex items-center space-x-2 cursor-pointer ${
             activeSubTab === 'saved'
-              ? 'border-indigo-600 text-indigo-600'
-              : 'border-transparent text-slate-500 hover:text-slate-900'
+              ? 'bg-white text-indigo-600 shadow-sm'
+              : 'text-slate-600 hover:text-slate-900'
           }`}
         >
           <Bookmark className="w-4 h-4" />
@@ -141,10 +141,10 @@ export const BuyerDashboardView: React.FC<BuyerDashboardViewProps> = ({
 
         <button
           onClick={() => setActiveSubTab('chats')}
-          className={`pb-3 text-xs font-bold transition-all border-b-2 flex items-center space-x-2 ${
+          className={`py-2 px-4 rounded-full text-xs font-bold transition-all spring-press flex items-center space-x-2 cursor-pointer ${
             activeSubTab === 'chats'
-              ? 'border-indigo-600 text-indigo-600'
-              : 'border-transparent text-slate-500 hover:text-slate-900'
+              ? 'bg-white text-indigo-600 shadow-sm'
+              : 'text-slate-600 hover:text-slate-900'
           }`}
         >
           <MessageSquare className="w-4 h-4" />
@@ -153,10 +153,10 @@ export const BuyerDashboardView: React.FC<BuyerDashboardViewProps> = ({
 
         <button
           onClick={() => setActiveSubTab('visits')}
-          className={`pb-3 text-xs font-bold transition-all border-b-2 flex items-center space-x-2 ${
+          className={`py-2 px-4 rounded-full text-xs font-bold transition-all spring-press flex items-center space-x-2 cursor-pointer ${
             activeSubTab === 'visits'
-              ? 'border-indigo-600 text-indigo-600'
-              : 'border-transparent text-slate-500 hover:text-slate-900'
+              ? 'bg-white text-indigo-600 shadow-sm'
+              : 'text-slate-600 hover:text-slate-900'
           }`}
         >
           <Calendar className="w-4 h-4" />
@@ -168,7 +168,7 @@ export const BuyerDashboardView: React.FC<BuyerDashboardViewProps> = ({
       {activeSubTab === 'saved' && (
         <div className="space-y-4">
           {savedProperties.length === 0 ? (
-            <div className="p-12 bg-white rounded-2xl border border-slate-200/80 text-center space-y-3 shadow-xs">
+            <div className="p-12 liquid-glass-card rounded-3xl border border-white/80 text-center space-y-3 shadow-sm">
               <Bookmark className="w-10 h-10 text-slate-400 mx-auto" />
               <h3 className="text-base font-bold text-slate-900">No saved properties yet</h3>
               <p className="text-xs text-slate-500 max-w-sm mx-auto">
@@ -176,7 +176,7 @@ export const BuyerDashboardView: React.FC<BuyerDashboardViewProps> = ({
               </p>
               <button
                 onClick={() => onNavigateTab('discover')}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 shadow-xs"
+                className="px-5 py-2.5 bg-indigo-600 text-white rounded-full text-xs font-bold hover:bg-indigo-700 shadow-sm spring-press"
               >
                 Browse Available Land
               </button>
@@ -188,10 +188,10 @@ export const BuyerDashboardView: React.FC<BuyerDashboardViewProps> = ({
                 return (
                   <div
                     key={item.id}
-                    className="bg-white rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md hover:border-indigo-200 transition-all overflow-hidden flex flex-col justify-between"
+                    className="liquid-glass-card hover-card-glass rounded-3xl border border-white/80 shadow-sm transition-all overflow-hidden flex flex-col justify-between"
                   >
                     <div>
-                      <div className="relative h-44 w-full bg-slate-100">
+                      <div className="relative h-48 w-full bg-slate-100 overflow-hidden">
                         <img
                           src={
                             p.coverPhoto ||
@@ -199,27 +199,27 @@ export const BuyerDashboardView: React.FC<BuyerDashboardViewProps> = ({
                           }
                           alt={p.title}
                           referrerPolicy="no-referrer"
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                         />
                         <button
                           onClick={() => onUnsaveProperty(p.id)}
-                          className="absolute top-2 right-2 p-1.5 rounded-xl bg-slate-900/70 text-white hover:bg-rose-600 transition-colors"
+                          className="absolute top-3 right-3 p-2 rounded-full bg-slate-900/70 backdrop-blur-md text-white hover:bg-rose-600 transition-colors spring-press"
                           title="Remove bookmark"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
-                        <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded-md bg-emerald-600/90 backdrop-blur-md text-white font-bold text-[10px] flex items-center space-x-1 shadow-xs">
-                          <ShieldCheck className="w-3 h-3 text-emerald-200" />
+                        <span className="absolute bottom-3 left-3 px-3 py-1 rounded-full bg-emerald-600/90 backdrop-blur-md text-white font-bold text-[10px] flex items-center space-x-1.5 shadow-sm">
+                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-200" />
                           <span>{p.documentVerifiedPercentage || 96}% Verified</span>
                         </span>
                       </div>
 
-                      <div className="p-4 space-y-2">
-                        <div className="flex items-center space-x-1 text-xs text-indigo-600 font-semibold">
+                      <div className="p-5 space-y-2.5">
+                        <div className="flex items-center space-x-1.5 text-xs text-indigo-600 font-bold">
                           <MapPin className="w-3.5 h-3.5 shrink-0" />
                           <span>{p.locality}, {p.district}</span>
                         </div>
-                        <h4 className="font-bold text-xs sm:text-sm text-slate-900 line-clamp-1">
+                        <h4 className="font-extrabold text-sm text-slate-900 line-clamp-1">
                           {p.title}
                         </h4>
                         <p className="text-xs text-slate-500 font-mono">
@@ -228,13 +228,13 @@ export const BuyerDashboardView: React.FC<BuyerDashboardViewProps> = ({
                       </div>
                     </div>
 
-                    <div className="p-4 pt-2 border-t border-slate-100 flex justify-end">
+                    <div className="p-5 pt-3 border-t border-slate-100/80 flex justify-end">
                       <button
                         onClick={() => onSelectPropertyId(p.id)}
-                        className="px-3 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-700 flex items-center space-x-1 shadow-xs"
+                        className="px-4 py-2 rounded-full bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-700 flex items-center space-x-1.5 shadow-sm shadow-indigo-600/20 spring-press cursor-pointer"
                       >
                         <span>View Details</span>
-                        <ExternalLink className="w-3 h-3" />
+                        <ExternalLink className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
@@ -249,7 +249,7 @@ export const BuyerDashboardView: React.FC<BuyerDashboardViewProps> = ({
       {activeSubTab === 'chats' && (
         <div className="space-y-3">
           {conversations.length === 0 ? (
-            <div className="p-12 bg-white rounded-2xl border border-slate-200/80 text-center space-y-2 shadow-xs">
+            <div className="p-12 liquid-glass-card rounded-3xl border border-white/80 text-center space-y-2 shadow-sm">
               <MessageSquare className="w-10 h-10 text-slate-400 mx-auto" />
               <h3 className="text-base font-bold text-slate-900">No active conversations</h3>
               <p className="text-xs text-slate-500">
@@ -261,16 +261,16 @@ export const BuyerDashboardView: React.FC<BuyerDashboardViewProps> = ({
               <div
                 key={conv.id}
                 onClick={() => onOpenChat(conv)}
-                className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs hover:border-indigo-300 hover:shadow-md transition-all flex items-center justify-between cursor-pointer"
+                className="liquid-glass-card hover-card-glass rounded-3xl border border-white/80 p-5 shadow-sm hover:border-indigo-300 transition-all flex items-center justify-between cursor-pointer spring-press"
               >
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xs">
+                <div className="flex items-center space-x-4">
+                  <div className="w-11 h-11 rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-bold text-sm shadow-md shadow-indigo-600/20">
                     {(conv.sellerName || 'S').charAt(0)}
                   </div>
                   <div>
-                    <h4 className="font-bold text-xs sm:text-sm text-slate-900">{conv.sellerName || 'Landowner'}</h4>
+                    <h4 className="font-extrabold text-sm text-slate-900">{conv.sellerName || 'Landowner'}</h4>
                     <p className="text-xs text-indigo-600 font-semibold">{conv.propertyTitle}</p>
-                    <p className="text-[11px] text-slate-500 truncate max-w-md">{conv.lastMessage}</p>
+                    <p className="text-[11px] text-slate-500 truncate max-w-md mt-0.5">{conv.lastMessage}</p>
                   </div>
                 </div>
 
@@ -287,7 +287,7 @@ export const BuyerDashboardView: React.FC<BuyerDashboardViewProps> = ({
       {activeSubTab === 'visits' && (
         <div className="space-y-3">
           {siteVisits.length === 0 ? (
-            <div className="p-12 bg-white rounded-2xl border border-slate-200/80 text-center space-y-2 shadow-xs">
+            <div className="p-12 liquid-glass-card rounded-3xl border border-white/80 text-center space-y-2 shadow-sm">
               <Calendar className="w-10 h-10 text-slate-400 mx-auto" />
               <h3 className="text-base font-bold text-slate-900">No site visits requested yet</h3>
               <p className="text-xs text-slate-500">
@@ -298,12 +298,12 @@ export const BuyerDashboardView: React.FC<BuyerDashboardViewProps> = ({
             siteVisits.map((visit) => (
               <div
                 key={visit.id}
-                className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+                className="liquid-glass-card hover-card-glass rounded-3xl border border-white/80 p-6 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
               >
-                <div className="space-y-1">
-                  <div className="flex items-center space-x-2">
+                <div className="space-y-1.5">
+                  <div className="flex items-center space-x-2.5">
                     <span
-                      className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                      className={`px-3 py-1 rounded-full text-[10px] font-bold ${
                         visit.status === 'CONFIRMED'
                           ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                           : visit.status === 'COMPLETED'
@@ -313,7 +313,7 @@ export const BuyerDashboardView: React.FC<BuyerDashboardViewProps> = ({
                     >
                       {visit.status}
                     </span>
-                    <h4 className="font-bold text-xs sm:text-sm text-slate-900">{visit.propertyTitle}</h4>
+                    <h4 className="font-extrabold text-sm text-slate-900">{visit.propertyTitle}</h4>
                   </div>
                   <p className="text-xs text-slate-600">
                     Seller: <span className="font-semibold">{visit.sellerName}</span> • Location: {visit.propertyLocation}
@@ -326,7 +326,7 @@ export const BuyerDashboardView: React.FC<BuyerDashboardViewProps> = ({
                 <div className="text-right">
                   <button
                     onClick={() => onSelectPropertyId(visit.propertyId)}
-                    className="px-3 py-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-700 hover:underline"
+                    className="px-4 py-2 rounded-full bg-indigo-50 text-indigo-600 text-xs font-bold hover:bg-indigo-100 transition-all spring-press"
                   >
                     View Listing Details →
                   </button>
