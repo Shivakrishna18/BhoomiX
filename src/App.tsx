@@ -81,7 +81,58 @@ export default function App() {
     };
   }, []);
 
-  // Fetch Core Properties Data
+  // Fetch and Subscribe to Core Properties in Real-time from Firestore
+  useEffect(() => {
+    setLoading(true);
+
+    const unsubscribe = propertyService.subscribeToPublishedProperties(
+      (list) => {
+        setProperties(list);
+        setLoading(false);
+
+        // Keep selected property updated if its data changes
+        setSelectedProperty((curr) => {
+          if (!curr) return null;
+          const fresh = list.find((p) => p.id === curr.id);
+          return fresh || curr;
+        });
+      },
+      (error) => {
+        console.warn('Real-time properties subscription notice:', error);
+        setLoading(false);
+      }
+    );
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
+  // Hydrate selected property from URL parameter on initial load or popstate
+  useEffect(() => {
+    const syncFromUrl = async () => {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const propId = params.get('propertyId') || params.get('id');
+        if (propId) {
+          const prop = await propertyService.getPropertyById(propId);
+          if (prop) {
+            setSelectedProperty(prop);
+          }
+        }
+      } catch (err) {
+        console.warn('URL property sync notice:', err);
+      }
+    };
+    syncFromUrl();
+
+    const handlePopState = () => {
+      syncFromUrl();
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
   const loadProperties = useCallback(async () => {
     try {
       const list = await propertyService.getPublishedProperties();
@@ -92,10 +143,6 @@ export default function App() {
       setLoading(false);
     }
   }, []);
-
-  useEffect(() => {
-    loadProperties();
-  }, [loadProperties]);
 
   // Load User Data (Saved, Visits, Chats) when user changes
   const loadUserData = useCallback(async () => {
@@ -183,7 +230,7 @@ export default function App() {
     await authService.signOut();
     setCurrentUser(null);
     setActiveTab('landing');
-    setSelectedProperty(null);
+    handleClearSelectedProperty();
     setSavedProperties([]);
     setSavedPropertyIds(new Set());
     setConversations([]);
@@ -257,13 +304,29 @@ export default function App() {
   // Select Property & Open Detail
   const handleSelectProperty = (property: Property) => {
     setSelectedProperty(property);
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set('propertyId', property.id);
+      window.history.pushState({}, '', url.toString());
+    } catch {}
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Clear Selected Property
+  const handleClearSelectedProperty = () => {
+    setSelectedProperty(null);
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('propertyId');
+      url.searchParams.delete('id');
+      window.history.pushState({}, '', url.toString());
+    } catch {}
   };
 
   // Handle Search from Landing
   const handleLandingSearch = (query: string) => {
     setSearchQuery(query);
-    setSelectedProperty(null);
+    handleClearSelectedProperty();
     setActiveTab('discover');
   };
 
@@ -273,7 +336,7 @@ export default function App() {
         (p) =>
           p.sellerId === currentUser.id ||
           p.sellerUserId === currentUser.id ||
-          (currentUser.role === 'SELLER' && p.sellerName === currentUser.displayName)
+          (currentUser.role === 'SELLER' && (p.sellerEmail === currentUser.email || p.sellerName === currentUser.displayName))
       )
     : [];
 
@@ -294,7 +357,7 @@ export default function App() {
         }}
         activeTab={activeTab}
         onNavigate={(tab) => {
-          setSelectedProperty(null);
+          handleClearSelectedProperty();
           setActiveTab(tab);
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
@@ -330,7 +393,7 @@ export default function App() {
         {selectedProperty ? (
           <PropertyDetailView
             property={selectedProperty}
-            onBack={() => setSelectedProperty(null)}
+            onBack={handleClearSelectedProperty}
             currentUser={currentUser || undefined}
             isSaved={savedPropertyIds.has(selectedProperty.id)}
             onToggleSave={() => handleToggleSave(selectedProperty)}

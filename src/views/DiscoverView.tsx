@@ -42,7 +42,7 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [selectedPurpose, setSelectedPurpose] = useState<string>('all');
   const [selectedDistrict, setSelectedDistrict] = useState<string>('all');
-  const [maxPriceCr, setMaxPriceCr] = useState<number>(10);
+  const [maxPriceCr, setMaxPriceCr] = useState<number>(50);
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [sortBy, setSortBy] = useState<'recommended' | 'price_asc' | 'price_desc' | 'size_desc'>('recommended');
   const [viewLayout, setViewLayout] = useState<'grid' | 'split_map'>('grid');
@@ -52,32 +52,42 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
     return properties
       .filter((p) => {
         // Purpose
-        if (selectedPurpose !== 'all' && p.purpose !== selectedPurpose) return false;
+        if (selectedPurpose !== 'all') {
+          const propPurpose = (p.purpose || '').toLowerCase();
+          const targetPurpose = selectedPurpose.toLowerCase();
+          if (propPurpose !== targetPurpose && !propPurpose.includes(targetPurpose)) return false;
+        }
         // District
-        if (selectedDistrict !== 'all' && p.district !== selectedDistrict) return false;
-        // Max Price
-        if (p.askingPrice > maxPriceCr * 10000000) return false;
+        if (selectedDistrict !== 'all') {
+          const propDistrict = (p.district || '').toLowerCase();
+          const targetDistrict = selectedDistrict.toLowerCase();
+          if (propDistrict !== targetDistrict && !propDistrict.includes(targetDistrict)) return false;
+        }
+        // Max Price (only filter if less than 50 Cr cap)
+        if (maxPriceCr < 50 && (p.askingPrice || 0) > maxPriceCr * 10000000) return false;
         // Verified Only
-        if (verifiedOnly && !p.clearTitle) return false;
+        if (verifiedOnly && !p.clearTitle && (p.documentVerifiedPercentage || 0) < 80) return false;
         // Query search
         if (searchQuery.trim()) {
           const q = searchQuery.toLowerCase();
-          const matchLoc = p.locality.toLowerCase().includes(q);
-          const matchDist = p.district.toLowerCase().includes(q);
-          const matchTitle = p.title.toLowerCase().includes(q);
-          const matchDesc = p.description.toLowerCase().includes(q);
-          const matchSy = p.surveyNumber?.toLowerCase().includes(q);
-          const matchPurpose = p.purpose.toLowerCase().includes(q);
-          if (!matchLoc && !matchDist && !matchTitle && !matchDesc && !matchSy && !matchPurpose) {
+          const matchLoc = (p.locality || '').toLowerCase().includes(q);
+          const matchDist = (p.district || '').toLowerCase().includes(q);
+          const matchTitle = (p.title || '').toLowerCase().includes(q);
+          const matchDesc = (p.description || '').toLowerCase().includes(q);
+          const matchSy = (p.surveyNumber || '').toLowerCase().includes(q);
+          const matchPurpose = (p.purpose || '').toLowerCase().includes(q);
+          const matchSeller = (p.sellerName || p.ownerName || '').toLowerCase().includes(q);
+          const matchAddr = (p.address || '').toLowerCase().includes(q);
+          if (!matchLoc && !matchDist && !matchTitle && !matchDesc && !matchSy && !matchPurpose && !matchSeller && !matchAddr) {
             return false;
           }
         }
         return true;
       })
       .sort((a, b) => {
-        if (sortBy === 'price_asc') return a.askingPrice - b.askingPrice;
-        if (sortBy === 'price_desc') return b.askingPrice - a.askingPrice;
-        if (sortBy === 'size_desc') return b.landSize - a.landSize;
+        if (sortBy === 'price_asc') return (a.askingPrice || 0) - (b.askingPrice || 0);
+        if (sortBy === 'price_desc') return (b.askingPrice || 0) - (a.askingPrice || 0);
+        if (sortBy === 'size_desc') return (b.landSize || 0) - (a.landSize || 0);
         return (b.trustScore || 90) - (a.trustScore || 90);
       });
   }, [properties, selectedPurpose, selectedDistrict, maxPriceCr, verifiedOnly, searchQuery, sortBy]);
@@ -104,6 +114,10 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
     'Sangareddy',
     'Yadadri Bhuvanagiri',
     'Medchal-Malkajgiri',
+    'Vikarabad',
+    'Mahabubnagar',
+    'Siddipet',
+    'Nalgonda',
   ];
 
   return (
@@ -151,13 +165,15 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
           <div className="w-full md:w-64 px-2 space-y-1">
             <div className="flex justify-between text-[11px] font-semibold text-slate-700">
               <span>Budget Cap:</span>
-              <span className="text-indigo-600 font-bold font-mono">Up to ₹{maxPriceCr} Cr</span>
+              <span className="text-indigo-600 font-bold font-mono">
+                {maxPriceCr >= 50 ? 'All Budgets (No Limit)' : `Up to ₹${maxPriceCr} Cr`}
+              </span>
             </div>
             <input
               type="range"
-              min="0.5"
-              max="15"
-              step="0.5"
+              min="1"
+              max="50"
+              step="1"
               value={maxPriceCr}
               onChange={(e) => setMaxPriceCr(parseFloat(e.target.value))}
               className="w-full accent-indigo-600 cursor-pointer h-1.5 bg-slate-200 rounded-lg"

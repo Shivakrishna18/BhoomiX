@@ -8,82 +8,33 @@ import {
   deleteDoc,
   query,
   where,
+  onSnapshot,
+  orderBy,
+  Unsubscribe,
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { Property } from '../types';
-import { TELANGANA_DEMO_PROPERTIES, INITIAL_TELANGANA_PROPERTIES } from '../data/telanganaDemoData';
+import { INITIAL_TELANGANA_PROPERTIES } from '../data/telanganaDemoData';
 
 const COLLECTION_NAME = 'properties';
-const LOCAL_PROPERTIES_KEY = 'bhoomix_custom_properties_v2';
-const DELETED_PROPERTIES_KEY = 'bhoomix_deleted_property_ids';
 
-const getDeletedPropertyIds = (): Set<string> => {
-  try {
-    const raw = localStorage.getItem(DELETED_PROPERTIES_KEY);
-    return new Set(raw ? JSON.parse(raw) : []);
-  } catch (e) {
-    return new Set();
-  }
-};
-
-const markPropertyAsDeletedLocally = (id: string) => {
-  try {
-    const ids = getDeletedPropertyIds();
-    ids.add(id);
-    localStorage.setItem(DELETED_PROPERTIES_KEY, JSON.stringify(Array.from(ids)));
-  } catch (e) {
-    console.warn('Failed to mark deleted id:', e);
-  }
-};
-
-const getLocalCustomProperties = (): Property[] => {
-  try {
-    const raw = localStorage.getItem(LOCAL_PROPERTIES_KEY);
-    const list: Property[] = raw ? JSON.parse(raw) : [];
-    const deletedIds = getDeletedPropertyIds();
-    return list.filter((p) => !deletedIds.has(p.id));
-  } catch (e) {
-    return [];
-  }
-};
-
-const saveLocalCustomProperty = (prop: Property) => {
-  try {
-    // Unmark as deleted if re-created/updated
-    const deletedIds = getDeletedPropertyIds();
-    if (deletedIds.has(prop.id)) {
-      deletedIds.delete(prop.id);
-      localStorage.setItem(DELETED_PROPERTIES_KEY, JSON.stringify(Array.from(deletedIds)));
+// Helper to remove any undefined values before sending to Firestore
+export function sanitizeFirestorePayload<T extends Record<string, any>>(obj: T): T {
+  const sanitized: any = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (value !== undefined) {
+      if (value !== null && typeof value === 'object' && !Array.isArray(value) && !(value instanceof Date)) {
+        sanitized[key] = sanitizeFirestorePayload(value);
+      } else {
+        sanitized[key] = value;
+      }
     }
-    const existing = getLocalCustomProperties().filter((p) => p.id !== prop.id);
-    localStorage.setItem(LOCAL_PROPERTIES_KEY, JSON.stringify([prop, ...existing]));
-  } catch (e) {
-    console.warn('Failed to save property locally:', e);
   }
-};
-
-const deleteLocalCustomProperty = (propId: string) => {
-  try {
-    markPropertyAsDeletedLocally(propId);
-    const raw = localStorage.getItem(LOCAL_PROPERTIES_KEY);
-    const existing: Property[] = raw ? JSON.parse(raw) : [];
-    const updated = existing.filter((p) => p.id !== propId);
-    localStorage.setItem(LOCAL_PROPERTIES_KEY, JSON.stringify(updated));
-  } catch (e) {
-    console.warn('Failed to delete property locally:', e);
-  }
-};
-
-// Helper for timeout
-const withTimeout = <T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> => {
-  return Promise.race([
-    promise,
-    new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms)),
-  ]);
-};
+  return sanitized as T;
+}
 
 export const propertyService = {
-  // Compress and resize image file to safe lightweight Base64
+  // Compress and resize image file to lightweight high-quality Base64 / Storage DataURL
   compressImage(file: File, maxDimension = 1200, quality = 0.75): Promise<string> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -123,62 +74,132 @@ export const propertyService = {
     });
   },
 
-  // Get all published properties for public & buyer discovery
+  // Real-time listener for all published properties across all devices
+  subscribeToPublishedProperties(
+    callback: (properties: Property[]) => void,
+    onError?: (error: any) => void
+  ): Unsubscribe {
+    const colRef = collection(db, COLLECTION_NAME);
+
+    const unsubscribe = onSnapshot(
+      colRef,
+      (snapshot) => {
+        const propertiesMap = new Map<string, Property>();
+
+        // 1. Load benchmark Telangana listings as base
+        INITIAL_TELANGANA_PROPERTIES.forEach((prop) => {
+          propertiesMap.set(prop.id, prop);
+        });
+
+        // 2. Overlay live Firestore listings
+        snapshot.forEach((docSnap) => {
+          const data = docSnap.data() as Property;
+          const status = (data.status || 'PUBLISHED').toUpperCase();
+
+          // Only keep published listings for explore/discovery
+          if (status === 'PUBLISHED' || status === 'PENDING_REVIEW') {
+            propertiesMap.set(docSnap.id, {
+              ...data,
+              id: docSnap.id,
+              status: status as any,
+            });
+          } else if (status === 'ARCHIVED' || status === 'DELETED') {
+            propertiesMap.delete(docSnap.id);
+          }
+        });
+
+        // Sort properties by creation date descending (newest first)
+        const sorted = Array.from(propertiesMap.values()).sort((a, b) => {
+          const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+          const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+          return timeB - timeA;
+        });
+
+        callback(sorted);
+      },
+      (error) => {
+        console.warn('[BhoomiX Properties] Real-time properties listener notice:', error);
+        if (onError) onError(error);
+        // Provide benchmark fallback on connection issues
+        callback(INITIAL_TELANGANA_PROPERTIES);
+      }
+    );
+
+    return unsubscribe;
+  },
+
+  // Get all published properties for public & buyer discovery (One-shot fetch)
   async getPublishedProperties(): Promise<Property[]> {
-    const localCustom = getLocalCustomProperties();
-    const deletedIds = getDeletedPropertyIds();
     try {
-      const fetchPromise = (async () => {
-        const q = query(
-          collection(db, COLLECTION_NAME),
-          where('status', '==', 'PUBLISHED')
-        );
-        const snapshot = await getDocs(q);
+      const colRef = collection(db, COLLECTION_NAME);
+      const snapshot = await getDocs(colRef);
+      const propertiesMap = new Map<string, Property>();
+
+      // Base demo properties
+      INITIAL_TELANGANA_PROPERTIES.forEach((p) => propertiesMap.set(p.id, p));
+
+      // Overwrite / append with Firestore records
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data() as Property;
+        const status = (data.status || 'PUBLISHED').toUpperCase();
+        if (status === 'PUBLISHED' || status === 'PENDING_REVIEW') {
+          propertiesMap.set(docSnap.id, {
+            ...data,
+            id: docSnap.id,
+            status: status as any,
+          });
+        } else if (status === 'ARCHIVED' || status === 'DELETED') {
+          propertiesMap.delete(docSnap.id);
+        }
+      });
+
+      return Array.from(propertiesMap.values()).sort((a, b) => {
+        const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return timeB - timeA;
+      });
+    } catch (error) {
+      console.warn('[BhoomiX Properties] One-shot fetch notice:', error);
+      return INITIAL_TELANGANA_PROPERTIES;
+    }
+  },
+
+  // Real-time listener for a specific seller's properties
+  subscribeToSellerProperties(
+    sellerId: string,
+    callback: (properties: Property[]) => void
+  ): Unsubscribe {
+    const colRef = collection(db, COLLECTION_NAME);
+    const q = query(colRef, where('sellerId', '==', sellerId));
+
+    return onSnapshot(
+      q,
+      (snapshot) => {
         const list: Property[] = [];
         snapshot.forEach((docSnap) => {
-          list.push({ id: docSnap.id, ...docSnap.data() } as Property);
+          const data = docSnap.data() as Property;
+          const status = (data.status || 'PUBLISHED').toUpperCase();
+          if (status !== 'DELETED') {
+            list.push({ id: docSnap.id, ...data, status: status as any });
+          }
         });
-
-        // Merge remote + local custom + demo benchmarks
-        const map = new Map<string, Property>();
-        INITIAL_TELANGANA_PROPERTIES.forEach((p) => {
-          if (!deletedIds.has(p.id)) map.set(p.id, p);
-        });
-        list.forEach((p) => {
-          if (!deletedIds.has(p.id)) map.set(p.id, p);
-        });
-        localCustom.forEach((p) => {
-          if (!deletedIds.has(p.id)) map.set(p.id, p);
-        });
-
-        return Array.from(map.values());
-      })();
-
-      const fallbackList: Property[] = [...localCustom, ...INITIAL_TELANGANA_PROPERTIES].filter(
-        (p) => !deletedIds.has(p.id)
-      );
-      return await withTimeout(fetchPromise, 3500, fallbackList);
-    } catch (error) {
-      console.warn('Error fetching published properties from Firestore:', error);
-      const map = new Map<string, Property>();
-      INITIAL_TELANGANA_PROPERTIES.forEach((p) => {
-        if (!deletedIds.has(p.id)) map.set(p.id, p);
-      });
-      localCustom.forEach((p) => {
-        if (!deletedIds.has(p.id)) map.set(p.id, p);
-      });
-      return Array.from(map.values());
-    }
+        callback(
+          list.sort((a, b) => {
+            const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+            const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+            return timeB - timeA;
+          })
+        );
+      },
+      (error) => {
+        console.warn('[BhoomiX Properties] Seller properties listener notice:', error);
+        callback([]);
+      }
+    );
   },
 
   // Get properties created by a specific seller
   async getSellerProperties(sellerId: string): Promise<Property[]> {
-    const deletedIds = getDeletedPropertyIds();
-    const localCustom = getLocalCustomProperties().filter(
-      (p) =>
-        !deletedIds.has(p.id) &&
-        (p.sellerId === sellerId || p.sellerId === 'demo-seller-profile' || sellerId === 'demo-seller-profile')
-    );
     try {
       const q = query(
         collection(db, COLLECTION_NAME),
@@ -187,31 +208,24 @@ export const propertyService = {
       const snapshot = await getDocs(q);
       const list: Property[] = [];
       snapshot.forEach((docSnap) => {
-        list.push({ id: docSnap.id, ...docSnap.data() } as Property);
+        const data = docSnap.data() as Property;
+        if (data.status !== 'ARCHIVED' && (data as any).status !== 'DELETED') {
+          list.push({ id: docSnap.id, ...data } as Property);
+        }
       });
-
-      const map = new Map<string, Property>();
-      localCustom.forEach((p) => {
-        if (!deletedIds.has(p.id)) map.set(p.id, p);
+      return list.sort((a, b) => {
+        const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return timeB - timeA;
       });
-      list.forEach((p) => {
-        if (!deletedIds.has(p.id)) map.set(p.id, p);
-      });
-      return Array.from(map.values());
     } catch (error) {
-      console.warn('Note getting seller properties from firestore:', error);
-      return localCustom;
+      console.warn('[BhoomiX Properties] Error fetching seller properties:', error);
+      return [];
     }
   },
 
-  // Get a single property by ID
+  // Get a single property by ID directly from Firestore
   async getPropertyById(id: string): Promise<Property | null> {
-    const deletedIds = getDeletedPropertyIds();
-    if (deletedIds.has(id)) return null;
-
-    const localMatch = getLocalCustomProperties().find((p) => p.id === id);
-    if (localMatch) return localMatch;
-
     try {
       const docRef = doc(db, COLLECTION_NAME, id);
       const snap = await getDoc(docRef);
@@ -219,19 +233,19 @@ export const propertyService = {
         return { id: snap.id, ...snap.data() } as Property;
       }
 
-      // Check if it matches a demo property id
+      // Check if it matches a benchmark demo property id
       const demoMatch = INITIAL_TELANGANA_PROPERTIES.find((p) => p.id === id);
-      if (demoMatch && !deletedIds.has(demoMatch.id)) return demoMatch;
+      if (demoMatch) return demoMatch;
 
       return null;
     } catch (error) {
-      console.error('Error fetching property by ID:', error);
+      console.error('[BhoomiX Properties] Error fetching property by ID:', error);
       const demoMatch = INITIAL_TELANGANA_PROPERTIES.find((p) => p.id === id);
-      return (demoMatch && !deletedIds.has(demoMatch.id)) ? demoMatch : null;
+      return demoMatch || null;
     }
   },
 
-  // Create a new property listing (Seller)
+  // Create a new property listing (Seller) — Writes authoritatively to Firestore
   async createProperty(
     propertyData: Omit<Property, 'id' | 'createdAt'>
   ): Promise<Property> {
@@ -240,22 +254,29 @@ export const propertyService = {
     const newProperty: Property = {
       ...propertyData,
       id: newDocRef.id,
-      documentVerifiedPercentage: propertyData.documentVerifiedPercentage || 96,
+      documentVerifiedPercentage: propertyData.documentVerifiedPercentage || 94,
+      status: propertyData.status || 'PUBLISHED',
       createdAt: now,
       updatedAt: now,
     };
 
-    // Save locally immediately so seller never loses their work
-    saveLocalCustomProperty(newProperty);
+    // Mandatory authoritative Firestore write with sanitized payload
+    const sanitizedData = sanitizeFirestorePayload(newProperty);
+    await setDoc(newDocRef, sanitizedData);
 
-    // Sync to Firestore
-    try {
-      await setDoc(newDocRef, newProperty);
-    } catch (error) {
-      console.warn('Firestore write note (listing saved locally):', error);
-    }
+    console.log('[BhoomiX SELLER WRITE SUCCESS]', {
+      collection: COLLECTION_NAME,
+      propertyId: newProperty.id,
+      sellerId: newProperty.sellerId,
+      status: newProperty.status,
+      title: newProperty.title,
+    });
 
-    window.dispatchEvent(new CustomEvent('bhoomix_property_created', { detail: { property: newProperty } }));
+    // Dispatch global event for instant local view updates
+    window.dispatchEvent(
+      new CustomEvent('bhoomix_property_created', { detail: { property: newProperty } })
+    );
+
     return newProperty;
   },
 
@@ -264,36 +285,39 @@ export const propertyService = {
     id: string,
     updates: Partial<Property>
   ): Promise<void> {
-    const existing = await this.getPropertyById(id);
-    if (existing) {
-      const updated = { ...existing, ...updates, updatedAt: new Date().toISOString() };
-      saveLocalCustomProperty(updated);
-    }
+    const docRef = doc(db, COLLECTION_NAME, id);
+    const updatedPayload = sanitizeFirestorePayload({
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    });
+
+    await updateDoc(docRef, updatedPayload);
+
+    window.dispatchEvent(
+      new CustomEvent('bhoomix_property_updated', { detail: { id, updates: updatedPayload } })
+    );
+  },
+
+  // Delete / Archive property permanently from Firestore
+  async deleteProperty(id: string): Promise<void> {
+    const docRef = doc(db, COLLECTION_NAME, id);
+    // Mark as DELETED in Firestore to ensure real-time propagation across all subscribed clients
     try {
-      const docRef = doc(db, COLLECTION_NAME, id);
       await updateDoc(docRef, {
-        ...updates,
+        status: 'ARCHIVED',
         updatedAt: new Date().toISOString(),
       });
-    } catch (error) {
-      console.warn('Firestore update note:', error);
+    } catch (e) {
+      // If document doesn't exist, try deleteDoc
+      await deleteDoc(docRef).catch(() => {});
     }
-    window.dispatchEvent(new CustomEvent('bhoomix_property_updated', { detail: { id, updates } }));
+
+    window.dispatchEvent(
+      new CustomEvent('bhoomix_property_deleted', { detail: { id } })
+    );
   },
 
-  // Delete / Archive property
-  async deleteProperty(id: string): Promise<void> {
-    deleteLocalCustomProperty(id);
-    try {
-      const docRef = doc(db, COLLECTION_NAME, id);
-      await deleteDoc(docRef);
-    } catch (error) {
-      console.warn('Firestore delete note:', error);
-    }
-    window.dispatchEvent(new CustomEvent('bhoomix_property_deleted', { detail: { id } }));
-  },
-
-  // Seed Telangana demonstration properties directly to Firestore
+  // Seed Telangana demonstration properties directly to Firestore (Idempotent)
   async seedDemoProperties(): Promise<Property[]> {
     const seededList: Property[] = [];
     for (let i = 0; i < INITIAL_TELANGANA_PROPERTIES.length; i++) {
