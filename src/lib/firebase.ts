@@ -44,8 +44,8 @@ const firebaseConfig = {
 // Initialize Firebase App
 export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
-// Export Firestore (connecting to default database)
-export const db = getFirestore(app);
+// Export Firestore (connecting to designated applet database instance)
+export const db = getFirestore(app, (appletConfig as any).firestoreDatabaseId);
 export const auth = getAuth(app);
 
 export const googleProvider = new GoogleAuthProvider();

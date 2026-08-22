@@ -57,6 +57,7 @@ export default function App() {
   const [authModalInitialRole, setAuthModalInitialRole] = useState<'BUYER' | 'SELLER'>('BUYER');
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [chatModalOpen, setChatModalOpen] = useState(false);
+  const [activeChatConversation, setActiveChatConversation] = useState<Conversation | null>(null);
   const [activeChatProperty, setActiveChatProperty] = useState<Property | null>(null);
   const [activeChatSellerId, setActiveChatSellerId] = useState<string>('');
   const [activeChatSellerName, setActiveChatSellerName] = useState<string>('');
@@ -286,6 +287,7 @@ export default function App() {
       setAuthModalOpen(true);
       return;
     }
+    setActiveChatConversation(null);
     setActiveChatProperty(property);
     setActiveChatSellerId(property.sellerId || property.sellerUserId || 'seller_venkat_reddy');
     setActiveChatSellerName(property.sellerName || 'Landowner');
@@ -460,6 +462,7 @@ export default function App() {
                   onOpenChat={(conv) => {
                     const foundProp = properties.find((p) => p.id === conv.propertyId);
                     setActiveChatProperty(foundProp || null);
+                    setActiveChatConversation(conv);
                     setActiveChatSellerId(conv.sellerId);
                     setActiveChatSellerName(conv.sellerName || 'Landowner');
                     setChatModalOpen(true);
@@ -508,6 +511,7 @@ export default function App() {
                   onOpenChat={(conv) => {
                     const foundProp = properties.find((p) => p.id === conv.propertyId);
                     setActiveChatProperty(foundProp || null);
+                    setActiveChatConversation(conv);
                     setActiveChatSellerId(conv.sellerId);
                     setActiveChatSellerName(conv.sellerName || 'Landowner');
                     setChatModalOpen(true);
@@ -589,8 +593,12 @@ export default function App() {
 
           <ChatModal
             isOpen={chatModalOpen}
-            onClose={() => setChatModalOpen(false)}
+            onClose={() => {
+              setChatModalOpen(false);
+              setActiveChatConversation(null);
+            }}
             currentUser={currentUser}
+            conversation={activeChatConversation}
             property={activeChatProperty}
             sellerId={activeChatSellerId}
             sellerName={activeChatSellerName}

@@ -84,9 +84,7 @@ export const generateDeterministicConvId = (
 
 export const chatService = {
   // Prune old / invalid chat caches
-  async cleanUpOldChats(): Promise<void> {
-    // Keep clean
-  },
+  async cleanUpOldChats(): Promise<void> {},
 
   // Find or create a deterministic conversation between buyer, seller, and property
   async getOrCreateConversation(
@@ -100,20 +98,24 @@ export const chatService = {
   ): Promise<Conversation> {
     const deterministicId = generateDeterministicConvId(propertyId, buyerUserId, sellerUserId);
 
-    // 1. Check local cache first
-    const localConvs = getLocalConversations();
-    const localExisting = localConvs.find(
-      (c) =>
-        c.id === deterministicId ||
-        (c.propertyId === propertyId && c.buyerId === buyerUserId && c.sellerId === sellerUserId)
-    );
-    if (localExisting) return localExisting;
-
-    // 2. Check Firestore by deterministic ID
+    // 1. Check Firestore directly by deterministic ID first
     try {
       const docSnap = await getDoc(doc(db, CONVS_COLLECTION, deterministicId));
       if (docSnap.exists()) {
-        const conv = { id: docSnap.id, ...docSnap.data() } as Conversation;
+        const data = docSnap.data();
+        const conv = { id: docSnap.id, ...data } as Conversation;
+        // If names were updated, merge them in background
+        if ((buyerName && data.buyerName !== buyerName) || (sellerName && data.sellerName !== sellerName)) {
+          setDoc(
+            doc(db, CONVS_COLLECTION, deterministicId),
+            {
+              buyerName: buyerName || data.buyerName,
+              sellerName: sellerName || data.sellerName,
+              updatedAt: new Date().toISOString(),
+            },
+            { merge: true }
+          ).catch(() => {});
+        }
         saveLocalConversation(conv);
         return conv;
       }
@@ -121,7 +123,7 @@ export const chatService = {
       console.warn('Firestore doc get note:', e);
     }
 
-    // 3. Check Firestore by query (propertyId + buyerId + sellerId)
+    // 2. Check Firestore by query (propertyId + buyerId + sellerId)
     try {
       const convsRef = collection(db, CONVS_COLLECTION);
       const q = query(
@@ -142,20 +144,36 @@ export const chatService = {
       console.warn('Firestore query note:', e);
     }
 
+    // 3. Check local cache fallback
+    const localConvs = getLocalConversations();
+    const localExisting = localConvs.find(
+      (c) =>
+        c.id === deterministicId ||
+        (c.propertyId === propertyId && c.buyerId === buyerUserId && c.sellerId === sellerUserId)
+    );
+    if (localExisting) {
+      // Also ensure it is written to Firestore
+      try {
+        await setDoc(doc(db, CONVS_COLLECTION, deterministicId), localExisting, { merge: true });
+      } catch {}
+      return localExisting;
+    }
+
     // 4. Create new conversation document in Firestore
     const now = new Date().toISOString();
     const newConv: Conversation = {
       id: deterministicId,
+      conversationId: deterministicId,
       propertyId,
-      propertyTitle,
+      propertyTitle: propertyTitle || 'Land Parcel',
       propertyLocation: propertyLocation || 'Telangana',
       buyerId: buyerUserId,
       buyerUserId,
-      buyerName: buyerName || 'Prospective Buyer',
+      buyerName: buyerName || 'Direct Buyer',
       sellerId: sellerUserId,
       sellerUserId,
       sellerName: sellerName || 'Direct Landowner',
-      lastMessage: 'Direct conversation initialized',
+      lastMessage: `Namaste, I am interested in exploring "${propertyTitle}".`,
       lastMessageTimestamp: now,
       lastMessageSenderId: buyerUserId,
       createdAt: now,
@@ -165,14 +183,14 @@ export const chatService = {
     saveLocalConversation(newConv, true);
 
     // Initial introductory greeting message
-    const msgId = `msg-${Date.now()}-init`;
+    const msgId = `msg-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
     const initialMsg: Message = {
       id: msgId,
       messageId: msgId,
       conversationId: deterministicId,
       senderId: buyerUserId,
       senderUserId: buyerUserId,
-      senderName: buyerName || 'Buyer',
+      senderName: buyerName || 'Direct Buyer',
       receiverId: sellerUserId,
       receiverUserId: sellerUserId,
       body: `Namaste, I am interested in exploring "${propertyTitle}". Let's discuss details directly.`,
@@ -186,7 +204,7 @@ export const chatService = {
 
     try {
       const newRef = doc(db, CONVS_COLLECTION, deterministicId);
-      await setDoc(newRef, newConv);
+      await setDoc(newRef, newConv, { merge: true });
       const msgRef = doc(db, MSGS_COLLECTION, msgId);
       await setDoc(msgRef, initialMsg);
     } catch (e) {

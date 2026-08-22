@@ -157,6 +157,7 @@ export interface AIRecommendation {
 
 export interface Conversation {
   id: string;
+  conversationId?: string;
   propertyId: string;
   propertyTitle: string;
   propertyLocation?: string;
@@ -172,6 +173,7 @@ export interface Conversation {
   lastMessageTimestamp?: string;
   lastMessageSenderId?: string;
   unreadCount?: number;
+  metadata?: any;
   createdAt: string;
   updatedAt?: string;
 }
